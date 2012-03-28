@@ -5,21 +5,19 @@ $(function(){
 
 
   // CONSTANTS
-  var DEAMON = { value: -10, fillStyle: "rgb(255,0,100)", className: "deamon" }
-  var JEWEL = { value: 10, fillStyle: "rgb(100,100,255)", className: "jewel" }
+  var DEAMON = { value: -20, fillStyle: "rgb(255,0,100)", className: "deamon" }
+  var JEWEL = {  value: 10, fillStyle: "rgb(100,100,255)", className: "jewel", nb: 1, consumable: true }
 
   var ACTIONS = [
     { x: -1, y:  0 },
-    { x:  1, y:  0 },
-    { x:  0, y: -1 },
-    { x:  0, y:  1 },
     { x: -1, y: -1 },
-    { x: -1, y:  1 },
+    { x:  0, y: -1 },
     { x:  1, y: -1 },
+    { x:  1, y:  0 },
+    { x:  1, y:  1 },
+    { x:  0, y:  1 },
     { x:  1, y:  1 }
   ]
-
-  var LEFT = 0, RIGHT = 1, UP = 2, DOWN = 3, TOPLEFT = 4, BOTTOMLEFT = 5, TOPRIGHT = 6, BOTTOMRIGHT = 7; 
 
   // dirty variables used for rendering
   var dirty = true;
@@ -31,18 +29,18 @@ $(function(){
   for (var i = 0; i < 3; ++i) {
     var x = Math.floor(Math.random()*canvas.width);
     var y = Math.floor(Math.random()*canvas.height);
-    objects.push($.extend({ x: x, y: y, nb: 1 }, DEAMON));
+    objects.push($.extend({ x: x, y: y }, DEAMON));
     console.log("DEAMON at ", x, y);
   }
   for (var i = 0; i < 6; ++i) {
     var x = Math.floor(Math.random()*canvas.width);
     var y = Math.floor(Math.random()*canvas.height);
-    objects.push($.extend({ x: x, y: y, nb: 1 }, JEWEL));
+    objects.push($.extend({ x: x, y: y }, JEWEL));
     console.log("JEWEL at ", x, y);
   }
 
   var actionsStates = [];
-  applyForEachActionState(function(){ return 0; });
+  applyForEachActionState(function(){ return Math.random(); });
   
   objects.forEach(function (o) {
     for (var a = 0; a < ACTIONS.length; ++a)
@@ -127,18 +125,21 @@ $(function(){
 
   function getReward (s, a, olds, olda) {
     var r;
+    // init r with a value in [-2, 2] depending on the angle change (it's better to continue forward)
     var diff = olda - a;
     if (diff > 4)
       diff -= 8;
     diff = Math.abs(diff);
-    r = 2 - diff;
+    r = 2 - diff; 
 
-    if (s.x==olds.x && s.y==olds.y)
+    // decrease the value if the position hasn't changed (means a wall)
+    if (s.x==olds.x && s.y==olds.y) {
       r -= 5;
+    }
 
     objects.forEach(function (o) {
-      if (o.nb>0 && s.x == o.x && s.y == o.y) {
-        o.nb --;
+      if ( (!o.consumable || o.nb>0) && s.x == o.x && s.y == o.y) {
+        if (o.consumable) o.nb --;
         r += o.value;
       }
     });
@@ -169,7 +170,7 @@ $(function(){
     }, freq);
   }
 
-  QL(1000, 0.1, 0.8, 3000);
+  QL(200, 0.04, 0.9, 3000);
 
   function computeStateFromActionState () {
     for (var y = 0; y < canvas.height; ++ y) {
@@ -209,7 +210,7 @@ $(function(){
         qlEnabled = false;
         $canvas.addClass('disabled');
       }
-    });
+    }).change();
   }
 
   function drawBestPath() {
