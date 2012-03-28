@@ -219,7 +219,7 @@ $(function(){
       var myPos = {x:0,y:0},maxI=100;
       while(1) {
           var actionMax=0, actionValMax=getActionStateIndex(myPos.x, myPos.y, 0);
-          getReward(myPos,)
+          //getReward(myPos,)
           for (var a = 1; a < ACTIONS.length; ++ a) {
             var i = getActionStateIndex(myPos.x, myPos.y, a);
             
