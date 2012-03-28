@@ -5,8 +5,8 @@ $(function(){
 
 
   // CONSTANTS
-  var DEAMON = { value: -10, fillStyle: "rgb(255,0,100)", className: "deamon" }
-  var JEWEL = { value: 10, fillStyle: "rgb(100,100,255)", className: "jewel" }
+  var DEAMON = { value: -20, fillStyle: "rgb(255,0,100)", className: "deamon" }
+  var JEWEL = {  value: 10, fillStyle: "rgb(100,100,255)", className: "jewel", nb: 1, consumable: true }
 
   var ACTIONS = [
     { x: -1, y:  0 },
@@ -31,13 +31,13 @@ $(function(){
   for (var i = 0; i < 3; ++i) {
     var x = Math.floor(Math.random()*canvas.width);
     var y = Math.floor(Math.random()*canvas.height);
-    objects.push($.extend({ x: x, y: y, nb: 1 }, DEAMON));
+    objects.push($.extend({ x: x, y: y }, DEAMON));
     console.log("DEAMON at ", x, y);
   }
   for (var i = 0; i < 6; ++i) {
     var x = Math.floor(Math.random()*canvas.width);
     var y = Math.floor(Math.random()*canvas.height);
-    objects.push($.extend({ x: x, y: y, nb: 1 }, JEWEL));
+    objects.push($.extend({ x: x, y: y }, JEWEL));
     console.log("JEWEL at ", x, y);
   }
 
@@ -127,18 +127,20 @@ $(function(){
 
   function getReward (s, a, olds, olda) {
     var r;
+    // init r with a value in [-2, 2] depending on the angle change (it's better to continue forward)
     var diff = olda - a;
     if (diff > 4)
       diff -= 8;
     diff = Math.abs(diff);
-    r = 2 - diff;
+    r = 2 - diff; 
 
+    // decrease the value if the position hasn't changed (means a wall)
     if (s.x==olds.x && s.y==olds.y)
       r -= 5;
 
     objects.forEach(function (o) {
-      if (o.nb>0 && s.x == o.x && s.y == o.y) {
-        o.nb --;
+      if ( (!o.consumable || o.nb>0) && s.x == o.x && s.y == o.y) {
+        if (o.consumable) o.nb --;
         r += o.value;
       }
     });
@@ -169,7 +171,7 @@ $(function(){
     }, freq);
   }
 
-  QL(1000, 0.09, 0.95, 3000);
+  QL(1000, 0.04, 0.9, 3000);
 
   function computeStateFromActionState () {
     for (var y = 0; y < canvas.height; ++ y) {
@@ -209,7 +211,7 @@ $(function(){
         qlEnabled = false;
         $canvas.addClass('disabled');
       }
-    });
+    }).change();
   }
 
   var imgData = ctx.createImageData(canvas.width, canvas.height);
@@ -233,15 +235,6 @@ $(function(){
       imgData.data[i+3] = 255;
     });
     ctx.putImageData(imgData, 0, 0);
-
-
-    /*
-    return
-    objects.forEach(function (o) {
-      ctx.fillStyle = o.fillStyle;
-      ctx.fillRect(o.x, o.y, 1, 1);
-    });
-    */
   }
 
   setup();
