@@ -1,5 +1,6 @@
 $(function(){
   var $canvas = $('#viewport');
+  var $path = $('#path');
   var canvas = $canvas[0];
   var $num_iteration = $('#stats .num_iteration');
 
@@ -265,7 +266,7 @@ $(function(){
     });
     ctx.putImageData(imgData, 0, 0);
 
-    drawBestPath(ctx);
+    //drawBestPath(ctx);
 
     /*
     return
@@ -281,5 +282,11 @@ $(function(){
     requestAnimFrame(loop);
     render();
   }, canvas);
+
+
+  var pathCtx = $path[0].getContext("2d");
+  drawBestPath(pathCtx);
+  dirty = true;
+
 
 });

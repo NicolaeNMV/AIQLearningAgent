@@ -3,7 +3,6 @@ body {
 }
 
 canvas {
-  background: #fff;
   image-rendering: -moz-crisp-edges;
   image-rendering: -webkit-optimize-contrast;
   -ms-interpolation-mode: nearest-neighbor;
@@ -17,6 +16,13 @@ canvas.disabled {
 #experiment {
   position: relative;
   background: white;
+}
+
+#path {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
 }
 
 #objects {
