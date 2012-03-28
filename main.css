@@ -1,0 +1,22 @@
+body {
+  background: #eee;
+}
+
+canvas {
+  background: #fff;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-optimize-contrast;
+  -ms-interpolation-mode: nearest-neighbor;
+}
+
+footer {
+  padding-top: 10px;
+  margin-top: 20px;
+  border-top: 1px dashed #fff;
+}
+
+#wrapper {
+  width: 600px;
+  margin: 0 auto;
+}
+
