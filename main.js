@@ -38,7 +38,7 @@ $(function(){
 
   var actionsStates = [];
   applyForEachActionState(function(){ return 0; });
-
+  
   objects.forEach(function (o) {
     for (var a = 0; a < ACTIONS.length; ++a)
       setActionState(o.x, o.y, a, o.value);
@@ -46,7 +46,7 @@ $(function(){
 
   var states = [];
   // init states
-  applyForEachState(function(){ return 0; });
+  computeStateFromActionState();
 
   /// UTILS
   // newValue = f (x, y, action, currentValue)
@@ -106,11 +106,27 @@ $(function(){
   }
 
   function bestAction (s) {
-    return Math.floor(Math.random()*8);
+    var best = -Infinity;
+    var bestA;
+    for (var a = 0; a < ACTIONS.length; ++a) {
+      var next = move(s, a);
+      var v = Q(next, a);
+      if (v > best) {
+        best = v;
+        bestA = a;
+      }
+    }
+    return bestA;
   }
 
-  function getReward (a) {
-    return 0;
+  function getReward (s, a, olds, olda) {
+    var r = -1;
+    objects.forEach(function (o) {
+      if (s.x == o.x && s.y == o.y) {
+        r += o.value;
+      }
+    });
+    return r;
   }
 
   function Q (s, a) {
@@ -122,14 +138,15 @@ $(function(){
       var aprime = bestAction(robot);
       var sprime = move(robot, aprime);
       applyForEachActionState(function (x, y, a, qsa) {
-        return qsa + alpha*(getReward(aprime) + gamma*Q(sprime, aprime) - qsa);
+        return qsa + alpha*(getReward(sprime, aprime, robot, a) + gamma*Q(sprime, aprime) - qsa);
       });
+      robot = sprime;
     }
     computeStateFromActionState();
     dirty = true;
   }
 
-  QL(2, 0.1, 0.2);
+  QL(10, 0.1, 0.1);
 
   function computeStateFromActionState () {
     for (var y = 0; y < canvas.height; ++ y) {
@@ -158,7 +175,7 @@ $(function(){
     dirty = false;
 
     forEachState(function (x, y, v) {
-      var p = smoothstep(-100, 100, v);
+      var p = smoothstep(-10, 10, v);
       var r = Math.floor((1-p)*255), g = Math.floor(p*255), b = 0;
       var i = (y*canvas.width+x)*4;
       imgData.data[i]   = r;
@@ -168,6 +185,7 @@ $(function(){
     });
     ctx.putImageData(imgData, 0, 0);
 
+    return
     objects.forEach(function (o) {
       ctx.fillStyle = o.fillStyle;
       ctx.fillRect(o.x, o.y, 1, 1);
