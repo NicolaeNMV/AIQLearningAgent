@@ -5,6 +5,17 @@ $(function(){
   var DRAGON = { value: -10, fillStyle: "rgb(255,0,100)" }
   var JEWEL = { value: 10, fillStyle: "rgb(100,100,255)" }
 
+  var ACTIONS = [
+    { x: -1, y:  0 },
+    { x:  1, y:  0 },
+    { x:  0, y: -1 },
+    { x:  0, y:  1 },
+    { x: -1, y: -1 },
+    { x: -1, y:  1 },
+    { x:  1, y: -1 },
+    { x:  1, y:  1 }
+  ]
+
   // dirty variables used for rendering
   var dirty = true;
 
@@ -21,11 +32,33 @@ $(function(){
     objects.push($.extend({ x:x, y:y }, JEWEL));
   }
 
+  var actionsStates = [];
+  applyForEachActionState(function(){ return 0; });
+
   var states = [];
   // init states
   applyForEachState(function(){ return 0; });
 
   /// UTILS
+  // newValue = f (x, y, action, currentValue)
+  // is called for each state
+  function applyForEachActionState (f) {
+    for (var y = 0; y < canvas.height; ++ y) {
+      for (var x = 0; x < canvas.width; ++ x) {
+        for (var a = 0; a < ACTIONS.length; ++ a) {
+          var i = getActionStateIndex(x, y, a);
+          actionsStates[i] = f(x, y, a, actionsStates[i]);
+        }
+      }
+    }
+  }
+  function getActionStateIndex (x, y, a) {
+    return a+ACTIONS.length*(x + y*canvas.width);
+  }
+  function getActionState (x, y, a) {
+    return actionsStates[ getActionStateIndex(x, y, a) ];
+  }
+
   // newValue = f (x, y, currentValue) 
   // is called for each state
   function applyForEachState (f) {
@@ -43,6 +76,21 @@ $(function(){
       return v;
     });
   }
+
+  function computeStateFromActionState () {
+    for (var y = 0; y < canvas.height; ++ y) {
+      for (var x = 0; x < canvas.width; ++ x) {
+        var sum = 0;
+        var s = x + y*canvas.width;
+        for (var a = 0; a < ACTIONS.length; ++ a) {
+          var i = a+ACTIONS.length*s;
+          sum += actionsStates[i];
+        }
+        states[s] = sum / ACTIONS.length;
+      }
+    }
+  }
+
   function constraint (min, max, value) { return Math.max(min, Math.min(max, value)) }
   function smoothstep (min, max, value) { return Math.max(0, Math.min(1, (value-min)/(max-min))); }
 
