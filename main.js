@@ -1,11 +1,12 @@
 $(function(){
-  var canvas = $('#viewport')[0];
+  var $canvas = $('#viewport');
+  var canvas = $canvas[0];
   var $num_iteration = $('#stats .num_iteration');
 
 
   // CONSTANTS
-  var DRAGON = { value: -10, fillStyle: "rgb(255,0,100)" }
-  var JEWEL = { value: 10, fillStyle: "rgb(100,100,255)" }
+  var DEAMON = { value: -10, fillStyle: "rgb(255,0,100)", className: "deamon" }
+  var JEWEL = { value: 10, fillStyle: "rgb(100,100,255)", className: "jewel" }
 
   var ACTIONS = [
     { x: -1, y:  0 },
@@ -30,13 +31,13 @@ $(function(){
   for (var i = 0; i < 3; ++i) {
     var x = Math.floor(Math.random()*canvas.width);
     var y = Math.floor(Math.random()*canvas.height);
-    objects.push($.extend({ x:x, y:y }, DRAGON));
-    console.log("DRAGON at ", x, y);
+    objects.push($.extend({ x: x, y: y, nb: 1 }, DEAMON));
+    console.log("DEAMON at ", x, y);
   }
-  for (var i = 0; i < 3; ++i) {
+  for (var i = 0; i < 6; ++i) {
     var x = Math.floor(Math.random()*canvas.width);
     var y = Math.floor(Math.random()*canvas.height);
-    objects.push($.extend({ x:x, y:y }, JEWEL));
+    objects.push($.extend({ x: x, y: y, nb: 1 }, JEWEL));
     console.log("JEWEL at ", x, y);
   }
 
@@ -102,7 +103,6 @@ $(function(){
   // COMPUTING
   function move (s, a) {
     var disp = ACTIONS[a];
-    var w = canvas.width, h = canvas.height;
     return { 
       x: constraint(0, canvas.width-1, s.x + disp.x), 
       y: constraint(0, canvas.height-1, s.y + disp.y)
@@ -110,12 +110,12 @@ $(function(){
   }
 
   function bestAction (s) {
-    var bestA = Math.floor(Math.random()*8);
+    var bestA = 0; //Math.floor(Math.random()*8);
     var best = Q(move(s, bestA), bestA);
-    for (var a = 0; a < ACTIONS.length; ++a) {
+    for (var a = 1; a < ACTIONS.length; ++a) {
       var next = move(s, a);
       var v = Q(next, a);
-      if (v > best) {
+      if(v > best) {
         best = v;
         bestA = a;
       }
@@ -133,8 +133,12 @@ $(function(){
     diff = Math.abs(diff);
     r = 2 - diff;
 
+    if (s.x==olds.x && s.y==olds.y)
+      r -= 5;
+
     objects.forEach(function (o) {
-      if (s.x == o.x && s.y == o.y) {
+      if (o.nb>0 && s.x == o.x && s.y == o.y) {
+        o.nb --;
         r += o.value;
       }
     });
@@ -155,7 +159,7 @@ $(function(){
       }
       applyForEachActionState(function (x, y, a, qsa) {
         var s = {x: x, y: y};
-        var aprime = bestAction(a);
+        var aprime = bestAction(s);
         var sprime = move(s, aprime);
         return qsa + alpha*(getReward(sprime, aprime, s, a) + gamma*Q(sprime, aprime) - qsa);
       });
@@ -165,7 +169,7 @@ $(function(){
     }, freq);
   }
 
-  QL(100, 0.5, 1, 3000);
+  QL(1000, 0.1, 0.8, 3000);
 
   function computeStateFromActionState () {
     for (var y = 0; y < canvas.height; ++ y) {
@@ -183,14 +187,34 @@ $(function(){
 
   // RENDERING
   var ctx = canvas.getContext('2d');
+  var qlEnabled;
 
   function setup () {
-
+    var $objects = $('#objects');
+    objects.forEach(function (o) {
+      $objects.append($('<div class="object" />').
+        addClass(o.className).
+        css("top", $canvas.height()*((o.y+0.5)/canvas.height)+'px').
+        css("left", $canvas.width()*((o.x+0.5)/canvas.width)+'px').
+        append('<span />'));
+    });
+    var $enableQL = $('#enableQL');
+    $enableQL.on("change", function() {
+      if($(this).is(":checked")) {
+        dirty = true;
+        qlEnabled = true;
+        $canvas.removeClass('disabled');
+      }
+      else {
+        qlEnabled = false;
+        $canvas.addClass('disabled');
+      }
+    });
   }
 
   var imgData = ctx.createImageData(canvas.width, canvas.height);
   function render () {
-    if (!dirty) return;
+    if (!dirty || !qlEnabled) return;
     dirty = false;
 
     var min=+Infinity, max=-Infinity;
@@ -210,13 +234,17 @@ $(function(){
     });
     ctx.putImageData(imgData, 0, 0);
 
+
+    /*
     return
     objects.forEach(function (o) {
       ctx.fillStyle = o.fillStyle;
       ctx.fillRect(o.x, o.y, 1, 1);
     });
+    */
   }
 
+  setup();
   requestAnimFrame(function loop () {
     requestAnimFrame(loop);
     render();
