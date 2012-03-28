@@ -38,11 +38,19 @@ $(function(){
     console.log("JEWEL at ", x, y);
   }
 
-  function removeObject (o) {
+  function removeItem (o) {
     var i = objects.indexOf(o);
     if (i != -1) {
       objects.splice(i, 1);
     }
+  }
+
+  function findItem(x,y) {
+    for (var i = objects.length - 1; i >= 0; i--) {
+      if (objects[i].x == x && objects[i].y == y) 
+        return objects[i];
+    };
+    return null;
   }
 
   var actionsStates;
@@ -177,8 +185,11 @@ $(function(){
     }
   }
 
-  initActionState();
-  QL(50, 0.04, 0.9, 3000);
+  function computeQL() {
+    initActionState();
+    QL(50, 0.04, 0.9, 3000);
+  }
+  computeQL();
 
   function computeStateFromActionState () {
     for (var y = 0; y < canvas.height; ++ y) {
@@ -224,10 +235,11 @@ $(function(){
   function drawBestPath(ctx) {
       var myPos = { x: Math.floor(Math.random()*canvas.width/2 + canvas.width/4), 
                     y: Math.floor(Math.random()*canvas.height/2 + canvas.height/4) };
-      var maxI=2000;
+      var maxI=100000;
       ctx.fillStyle="black";
-      while(1) {
-          var actionMax=0, actionValMax=actionsStates[getActionStateIndex(myPos.x, myPos.y, 0)];
+      while(objects.length) {
+          var actionMax=0, 
+          actionValMax=actionsStates[getActionStateIndex(myPos.x, myPos.y, 0)];
           //getReward(myPos,)
           for (var a = 1; a < ACTIONS.length; ++ a) {
             var i = getActionStateIndex(myPos.x, myPos.y, a);
@@ -241,6 +253,12 @@ $(function(){
           //console.log(i + "  Action " + actionMax + " New pos x" + myPos.x + " y" + myPos.y)
           if (maxI-- == 0) break;
           ctx.fillRect(myPos.x,myPos.y,1,1);
+          var item = findItem(myPos.x,myPos.y);
+          if (item != null) {
+            removeItem(item);
+            console.log("Remove " + item);
+            computeQL();
+          }
       }
   }
 
