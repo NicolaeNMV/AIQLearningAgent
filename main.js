@@ -5,26 +5,24 @@ $(function(){
 
 
   // CONSTANTS
-  var DEAMON = { value: -20, fillStyle: "rgb(255,0,100)", className: "deamon" }
-  var JEWEL = {  value: 10, fillStyle: "rgb(100,100,255)", className: "jewel", nb: 1, consumable: true }
+  var DEAMON = { fillStyle: "rgb(255,0,100)", className: "deamon", value: -20 }
+  var JEWEL = { className: "jewel", value: 5, nb: 1, consumable: true }
 
   var ACTIONS = [
-    { x: -1, y:  0 },
-    { x: -1, y: -1 },
-    { x:  0, y: -1 },
-    { x:  1, y: -1 },
-    { x:  1, y:  0 },
-    { x:  1, y:  1 },
-    { x:  0, y:  1 },
-    { x:  1, y:  1 }
+    { x: -1, y:  0 }, // left
+    { x: -1, y: -1 }, // top left
+    { x:  0, y: -1 }, // top
+    { x:  1, y: -1 }, // top right
+    { x:  1, y:  0 }, // right
+    { x:  1, y:  1 }, // down right
+    { x:  0, y:  1 }, // down
+    { x: -1, y:  1 }  // down left
   ]
 
   // dirty variables used for rendering
   var dirty = true;
 
   // STATES
-  var robot = { x: Math.floor(Math.random()*canvas.width/2), y: Math.floor(Math.random()*canvas.height/2) };
-
   var objects = [];
   for (var i = 0; i < 3; ++i) {
     var x = Math.floor(Math.random()*canvas.width);
@@ -39,17 +37,34 @@ $(function(){
     console.log("JEWEL at ", x, y);
   }
 
-  var actionsStates = [];
-  applyForEachActionState(function(){ return Math.random(); });
-  
-  objects.forEach(function (o) {
-    for (var a = 0; a < ACTIONS.length; ++a)
-      setActionState(o.x, o.y, a, o.value);
-  });
+  function removeObject (o) {
+    var i = objects.indexOf(o);
+    if (i != -1) {
+      objects.splice(i, 1);
+    }
+  }
+
+  var actionsStates;
+
+  function initActionState () {
+    actionsStates = [];
+    applyForEachActionState(function(){ 
+      return Math.random()*0.3; 
+    });
+    objects.forEach(function (o) {
+      for (var a = 0; a < ACTIONS.length; ++a) {
+        var adj = move(o, a);
+        for (var i = 0; i < ACTIONS.length; ++i) {
+          setActionState(adj.x, adj.y, a, o.value);
+        }
+        setActionState(o.x, o.y, a, o.value);
+      }
+    });
+
+  }
 
   var states = [];
   // init states
-  computeStateFromActionState();
 
   /// UTILS
   // newValue = f (x, y, action, currentValue)
@@ -130,19 +145,12 @@ $(function(){
     if (diff > 4)
       diff -= 8;
     diff = Math.abs(diff);
-    r = 2 - diff; 
+    r = 2 - diff;
 
     // decrease the value if the position hasn't changed (means a wall)
     if (s.x==olds.x && s.y==olds.y) {
       r -= 5;
     }
-
-    objects.forEach(function (o) {
-      if ( (!o.consumable || o.nb>0) && s.x == o.x && s.y == o.y) {
-        if (o.consumable) o.nb --;
-        r += o.value;
-      }
-    });
     return r;
   }
 
@@ -152,12 +160,7 @@ $(function(){
 
   function QL (n, alpha, gamma, totalTime) {
     var freq =  Math.floor(totalTime / n);
-    var i = 0;
-    var interval = setInterval(function () {
-      if (i++ > n) {
-        clearInterval(interval);
-        return;
-      }
+    for (var i = 0; i < n; ++i) {
       applyForEachActionState(function (x, y, a, qsa) {
         var s = {x: x, y: y};
         var aprime = bestAction(s);
@@ -166,11 +169,11 @@ $(function(){
       });
       computeStateFromActionState();
       $num_iteration.text(i);
-      dirty = true;
-    }, freq);
+    }
   }
 
-  QL(200, 0.04, 0.9, 3000);
+  initActionState();
+  QL(50, 0.04, 0.9, 3000);
 
   function computeStateFromActionState () {
     for (var y = 0; y < canvas.height; ++ y) {
