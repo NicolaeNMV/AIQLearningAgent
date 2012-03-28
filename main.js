@@ -1,5 +1,7 @@
 $(function(){
   var canvas = $('#viewport')[0];
+  var $num_iteration = $('#stats .num_iteration');
+
 
   // CONSTANTS
   var DRAGON = { value: -10, fillStyle: "rgb(255,0,100)" }
@@ -29,11 +31,13 @@ $(function(){
     var x = Math.floor(Math.random()*canvas.width);
     var y = Math.floor(Math.random()*canvas.height);
     objects.push($.extend({ x:x, y:y }, DRAGON));
+    console.log("DRAGON at ", x, y);
   }
   for (var i = 0; i < 3; ++i) {
     var x = Math.floor(Math.random()*canvas.width);
     var y = Math.floor(Math.random()*canvas.height);
     objects.push($.extend({ x:x, y:y }, JEWEL));
+    console.log("JEWEL at ", x, y);
   }
 
   var actionsStates = [];
@@ -100,14 +104,14 @@ $(function(){
     var disp = ACTIONS[a];
     var w = canvas.width, h = canvas.height;
     return { 
-      x: constraint(0, canvas.width, s.x + disp.x), 
-      y: constraint(0, canvas.height, s.y + disp.y)
+      x: constraint(0, canvas.width-1, s.x + disp.x), 
+      y: constraint(0, canvas.height-1, s.y + disp.y)
     }
   }
 
   function bestAction (s) {
-    var best = -Infinity;
-    var bestA;
+    var bestA = Math.floor(Math.random()*8);
+    var best = Q(move(s, bestA), bestA);
     for (var a = 0; a < ACTIONS.length; ++a) {
       var next = move(s, a);
       var v = Q(next, a);
@@ -119,8 +123,16 @@ $(function(){
     return bestA;
   }
 
+  window.bestAction = bestAction;
+
   function getReward (s, a, olds, olda) {
-    var r = -1;
+    var r;
+    var diff = olda - a;
+    if (diff > 4)
+      diff -= 8;
+    diff = Math.abs(diff);
+    r = 2 - diff;
+
     objects.forEach(function (o) {
       if (s.x == o.x && s.y == o.y) {
         r += o.value;
@@ -133,20 +145,27 @@ $(function(){
     return getActionState(s.x, s.y, a);
   }
 
-  function QL (n, alpha, gamma) {
-    for (var i = 0; i < n; ++i) {
-      var aprime = bestAction(robot);
-      var sprime = move(robot, aprime);
+  function QL (n, alpha, gamma, totalTime) {
+    var freq =  Math.floor(totalTime / n);
+    var i = 0;
+    var interval = setInterval(function () {
+      if (i++ > n) {
+        clearInterval(interval);
+        return;
+      }
       applyForEachActionState(function (x, y, a, qsa) {
-        return qsa + alpha*(getReward(sprime, aprime, robot, a) + gamma*Q(sprime, aprime) - qsa);
+        var s = {x: x, y: y};
+        var aprime = bestAction(a);
+        var sprime = move(s, aprime);
+        return qsa + alpha*(getReward(sprime, aprime, s, a) + gamma*Q(sprime, aprime) - qsa);
       });
-      robot = sprime;
-    }
-    computeStateFromActionState();
-    dirty = true;
+      computeStateFromActionState();
+      $num_iteration.text(i);
+      dirty = true;
+    }, freq);
   }
 
-  QL(10, 0.1, 0.1);
+  QL(100, 0.5, 1, 3000);
 
   function computeStateFromActionState () {
     for (var y = 0; y < canvas.height; ++ y) {
@@ -174,8 +193,14 @@ $(function(){
     if (!dirty) return;
     dirty = false;
 
+    var min=+Infinity, max=-Infinity;
+    forEachState(function(_, __, v) {
+      if (v<min) min = v;
+      if (v>max) max = v;
+    });
+
     forEachState(function (x, y, v) {
-      var p = smoothstep(-10, 10, v);
+      var p = smoothstep(min, max, v);
       var r = Math.floor((1-p)*255), g = Math.floor(p*255), b = 0;
       var i = (y*canvas.width+x)*4;
       imgData.data[i]   = r;
