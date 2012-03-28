@@ -63,6 +63,7 @@ $(function(){
 
   }
 
+
   var states = [];
   // init states
 
@@ -137,6 +138,8 @@ $(function(){
   }
 
   window.bestAction = bestAction;
+  window.move = move;
+
 
   function getReward (s, a, olds, olda) {
     var r;
@@ -216,12 +219,13 @@ $(function(){
     }).change();
   }
 
-  function drawBestPath() {
-      ctx.beginPath();
-      ctx.moveTo(0,0);
-      var myPos = {x:0,y:0},maxI=100;
+  function drawBestPath(ctx) {
+      var myPos = { x: Math.floor(Math.random()*canvas.width/2 + canvas.width/4), 
+                    y: Math.floor(Math.random()*canvas.height/2 + canvas.height/4) };
+      var maxI=2000;
+      ctx.fillStyle="black";
       while(1) {
-          var actionMax=0, actionValMax=getActionStateIndex(myPos.x, myPos.y, 0);
+          var actionMax=0, actionValMax=actionsStates[getActionStateIndex(myPos.x, myPos.y, 0)];
           //getReward(myPos,)
           for (var a = 1; a < ACTIONS.length; ++ a) {
             var i = getActionStateIndex(myPos.x, myPos.y, a);
@@ -232,8 +236,9 @@ $(function(){
             }
           }
           myPos = move(myPos,actionMax);
-          console.log("New pos x" + myPos.x + " y" + myPos.y)
+          //console.log(i + "  Action " + actionMax + " New pos x" + myPos.x + " y" + myPos.y)
           if (maxI-- == 0) break;
+          ctx.fillRect(myPos.x,myPos.y,1,1);
       }
   }
 
@@ -259,7 +264,7 @@ $(function(){
     });
     ctx.putImageData(imgData, 0, 0);
 
-    //drawBestPath();
+    drawBestPath(ctx);
 
     /*
     return
