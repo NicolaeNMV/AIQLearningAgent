@@ -10,16 +10,14 @@ $(function(){
 
   var ACTIONS = [
     { x: -1, y:  0 },
-    { x:  1, y:  0 },
-    { x:  0, y: -1 },
-    { x:  0, y:  1 },
     { x: -1, y: -1 },
-    { x: -1, y:  1 },
+    { x:  0, y: -1 },
     { x:  1, y: -1 },
+    { x:  1, y:  0 },
+    { x:  1, y:  1 },
+    { x:  0, y:  1 },
     { x:  1, y:  1 }
   ]
-
-  var LEFT = 0, RIGHT = 1, UP = 2, DOWN = 3, TOPLEFT = 4, BOTTOMLEFT = 5, TOPRIGHT = 6, BOTTOMRIGHT = 7; 
 
   // dirty variables used for rendering
   var dirty = true;
@@ -42,7 +40,7 @@ $(function(){
   }
 
   var actionsStates = [];
-  applyForEachActionState(function(){ return 0; });
+  applyForEachActionState(function(){ return Math.random(); });
   
   objects.forEach(function (o) {
     for (var a = 0; a < ACTIONS.length; ++a)
@@ -135,8 +133,9 @@ $(function(){
     r = 2 - diff; 
 
     // decrease the value if the position hasn't changed (means a wall)
-    if (s.x==olds.x && s.y==olds.y)
+    if (s.x==olds.x && s.y==olds.y) {
       r -= 5;
+    }
 
     objects.forEach(function (o) {
       if ( (!o.consumable || o.nb>0) && s.x == o.x && s.y == o.y) {
@@ -171,7 +170,7 @@ $(function(){
     }, freq);
   }
 
-  QL(1000, 0.04, 0.9, 3000);
+  QL(200, 0.04, 0.9, 3000);
 
   function computeStateFromActionState () {
     for (var y = 0; y < canvas.height; ++ y) {
