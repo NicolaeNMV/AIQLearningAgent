@@ -142,9 +142,10 @@ $(function(){
 
 
   function getReward (s, a, olds, olda) {
-    var r;
+    var r = 0;
+
     // init r with a value in [-2, 2] depending on the angle change (it's better to continue forward)
-    var diff = olda - a;
+    var diff = (16+olda - a)%8;
     if (diff > 4)
       diff -= 8;
     diff = Math.abs(diff);
