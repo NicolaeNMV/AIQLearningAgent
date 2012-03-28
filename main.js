@@ -212,6 +212,27 @@ $(function(){
     });
   }
 
+  function drawBestPath() {
+      ctx.beginPath();
+      ctx.moveTo(0,0);
+      var myPos = {x:0,y:0},maxI=100;
+      while(1) {
+          var actionMax=0, actionValMax=getActionStateIndex(myPos.x, myPos.y, 0);
+          getReward(myPos,)
+          for (var a = 1; a < ACTIONS.length; ++ a) {
+            var i = getActionStateIndex(myPos.x, myPos.y, a);
+            
+            if (actionsStates[i] > actionValMax) {
+              actionValMax = actionsStates[i];
+              actionMax = a;
+            }
+          }
+          myPos = move(myPos,actionMax);
+          console.log("New pos x" + myPos.x + " y" + myPos.y)
+          if (maxI-- == 0) break;
+      }
+  }
+
   var imgData = ctx.createImageData(canvas.width, canvas.height);
   function render () {
     if (!dirty || !qlEnabled) return;
@@ -234,6 +255,7 @@ $(function(){
     });
     ctx.putImageData(imgData, 0, 0);
 
+    //drawBestPath();
 
     /*
     return
