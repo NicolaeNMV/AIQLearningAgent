@@ -169,7 +169,7 @@ $(function(){
     }, freq);
   }
 
-  QL(1000, 0.1, 0.8, 3000);
+  QL(1000, 0.09, 0.95, 3000);
 
   function computeStateFromActionState () {
     for (var y = 0; y < canvas.height; ++ y) {
