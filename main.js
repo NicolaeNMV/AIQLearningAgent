@@ -16,10 +16,14 @@ $(function(){
     { x:  1, y:  1 }
   ]
 
+  var LEFT = 0, RIGHT = 1, UP = 2, DOWN = 3, TOPLEFT = 4, BOTTOMLEFT = 5, TOPRIGHT = 6, BOTTOMRIGHT = 7; 
+
   // dirty variables used for rendering
   var dirty = true;
 
   // STATES
+  var robot = { x: Math.floor(Math.random()*canvas.width/2), y: Math.floor(Math.random()*canvas.height/2) };
+
   var objects = [];
   for (var i = 0; i < 3; ++i) {
     var x = Math.floor(Math.random()*canvas.width);
@@ -35,6 +39,11 @@ $(function(){
   var actionsStates = [];
   applyForEachActionState(function(){ return 0; });
 
+  objects.forEach(function (o) {
+    for (var a = 0; a < ACTIONS.length; ++a)
+      setActionState(o.x, o.y, a, o.value);
+  });
+
   var states = [];
   // init states
   applyForEachState(function(){ return 0; });
@@ -43,11 +52,15 @@ $(function(){
   // newValue = f (x, y, action, currentValue)
   // is called for each state
   function applyForEachActionState (f) {
+    var old = [];
+    for (var i = 0; i < actionsStates.length; ++i)
+      old[i] = actionsStates[i];
+
     for (var y = 0; y < canvas.height; ++ y) {
       for (var x = 0; x < canvas.width; ++ x) {
         for (var a = 0; a < ACTIONS.length; ++ a) {
           var i = getActionStateIndex(x, y, a);
-          actionsStates[i] = f(x, y, a, actionsStates[i]);
+          actionsStates[i] = f(x, y, a, old[i]);
         }
       }
     }
@@ -57,6 +70,9 @@ $(function(){
   }
   function getActionState (x, y, a) {
     return actionsStates[ getActionStateIndex(x, y, a) ];
+  }
+  function setActionState (x, y, a, v) {
+    return actionsStates[ getActionStateIndex(x, y, a) ] = v;
   }
 
   // newValue = f (x, y, currentValue) 
@@ -76,6 +92,44 @@ $(function(){
       return v;
     });
   }
+  function constraint (min, max, value) { return Math.max(min, Math.min(max, value)) }
+  function smoothstep (min, max, value) { return Math.max(0, Math.min(1, (value-min)/(max-min))); }
+
+  // COMPUTING
+  function move (s, a) {
+    var disp = ACTIONS[a];
+    var w = canvas.width, h = canvas.height;
+    return { 
+      x: constraint(0, canvas.width, s.x + disp.x), 
+      y: constraint(0, canvas.height, s.y + disp.y)
+    }
+  }
+
+  function bestAction (s) {
+    return Math.floor(Math.random()*8);
+  }
+
+  function getReward (a) {
+    return 0;
+  }
+
+  function Q (s, a) {
+    return getActionState(s.x, s.y, a);
+  }
+
+  function QL (n, alpha, gamma) {
+    for (var i = 0; i < n; ++i) {
+      var aprime = bestAction(robot);
+      var sprime = move(robot, aprime);
+      applyForEachActionState(function (x, y, a, qsa) {
+        return qsa + alpha*(getReward(aprime) + gamma*Q(sprime, aprime) - qsa);
+      });
+    }
+    computeStateFromActionState();
+    dirty = true;
+  }
+
+  QL(2, 0.1, 0.2);
 
   function computeStateFromActionState () {
     for (var y = 0; y < canvas.height; ++ y) {
@@ -90,12 +144,6 @@ $(function(){
       }
     }
   }
-
-  function constraint (min, max, value) { return Math.max(min, Math.min(max, value)) }
-  function smoothstep (min, max, value) { return Math.max(0, Math.min(1, (value-min)/(max-min))); }
-
-
-  // COMPUTING
 
   // RENDERING
   var ctx = canvas.getContext('2d');
