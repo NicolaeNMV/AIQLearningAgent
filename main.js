@@ -196,8 +196,10 @@ $(function(){
   function noWallReward (s) {
     if (s.x == 0 || s.y == 0 || s.x == WIDTH-1 || s.y == HEIGHT-1)
       return -1;
+    /*
     if (s.x == 1 || s.y == 1 || s.x == WIDTH-2 || s.y == HEIGHT-2)
       return 0;
+    */
     return 1;
   }
 
