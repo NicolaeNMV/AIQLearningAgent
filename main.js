@@ -145,6 +145,8 @@ $(function(){
     var bestA = 0; //Math.floor(Math.random()*8);
     var best = Q(move(s, bestA), bestA);
     for (var a = 1; a < ACTIONS.length; ++a) {
+      if (s.x < 0 || s.x >= WIDTH || s.y < 0 || s.y >= HEIGHT) 
+        continue; // OUT OF RANGE
       var next = move(s, a);
       var v = Q(next, a);
       if(v > best) {
