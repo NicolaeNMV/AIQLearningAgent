@@ -12,6 +12,20 @@ $(function(){
   var DEAMON = { fillStyle: "rgb(255,0,100)", className: "deamon", value: -50 }
   var JEWEL = { className: "jewel", value: 50, consumable: true }
 
+  var goodProperty = {consumable: true}
+  var badProperty = { fillStyle: "rgb(255,0,100)" }
+  var TOYS = []
+  TOYS.push( $.extend({ value:-10,className:'hellfire'}, badProperty) )
+  TOYS.push( $.extend({ value:-10,className:'deamon'}, badProperty) )
+  TOYS.push( $.extend({ value:-10,className:'veryangry'}, goodProperty) )
+  TOYS.push( $.extend({ value:10,className:'jewel'}, goodProperty) )
+  TOYS.push( $.extend({ value:10,className:'love'}, goodProperty) )
+  TOYS.push( $.extend({ value:10,className:'paradise'}, goodProperty) )
+  TOYS.push( $.extend({ value:10,className:'pizza'}, goodProperty) )
+
+
+  
+
   var ACTIONS = [
     { x: -1, y:  0 }, // left
     { x: -1, y: -1 }, // top left
@@ -28,7 +42,7 @@ $(function(){
 
   // STATES
   var objects = [];
-  for (var i = 0; i < 3; ++i) {
+  /*for (var i = 0; i < 3; ++i) {
     var x = Math.floor(Math.random()*WIDTH);
     var y = Math.floor(Math.random()*HEIGHT);
     objects.push($.extend({}, DEAMON, { x: x, y: y, value: Math.round(DEAMON.value*(1+Math.random()*0.5)) }));
@@ -39,7 +53,12 @@ $(function(){
     var y = Math.floor(Math.random()*HEIGHT);
     objects.push($.extend({}, JEWEL, { x: x, y: y, value: Math.round(JEWEL.value*(1+Math.random()*0.5)) }));
     console.log("JEWEL at ", x, y);
-  }
+  }*/
+  for (var i = 0; i<TOYS.length; ++i) {
+    var x = Math.floor(Math.random()*WIDTH);
+    var y = Math.floor(Math.random()*HEIGHT);
+    objects.push($.extend({ x: x, y: y }, TOYS[i]));
+  } 
 
   function finished () {
     for (var i = 0; i < objects.length; ++i) {

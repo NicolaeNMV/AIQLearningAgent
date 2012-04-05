@@ -58,12 +58,51 @@ canvas.disabled {
   background-repeat: no-repeat;
   background-position: 0px 0px;
 }
+
 .deamon span.image {
-  background-image: url(deamon.png);
+  background-image: url(images/deamon.png);
 }
 .jewel span.image {
-  background-image: url(jewel.png);
+  background-image: url(images/jewel.png);
+}
+.hellfire span.image {
+  background-image: url(images/hellfire.gif);
+  width: 30px !important;
+  height: 52px !important;
+  left: -15px !important;
+  top: -26px !important;
+}
 
+.love span.image {
+  background-image: url(images/love.gif);
+  width: 27px !important;
+  height: 28px !important;
+  left: -13.5px !important;
+  top: -14px !important;
+}
+
+.veryangry span.image {
+  background-image: url(images/veryangry.gif);
+  width: 33px !important;
+  height: 36px !important;
+  left: -16.5px !important;
+  top: -17px !important;
+}
+
+.paradise span.image {
+  background-image: url(images/paradise.gif);
+  width: 19px !important;
+  height: 19px !important;
+  left: -8.5px !important;
+  top: -8.5px !important;
+}
+
+.pizza span.image {
+  background-image: url(images/pizza.gif);
+  width: 19px !important;
+  height: 19px !important;
+  left: -8.5px !important;
+  top: -8.5px !important;
 }
 
 footer {
