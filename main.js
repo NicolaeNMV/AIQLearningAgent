@@ -16,8 +16,8 @@ $(function(){
   
   // reward object values must be normalized in a [-100, 100] range
   var GOODS = [
-    { className: "jewel", value: 15 },
-    { className: "paradise", value: 12 },
+    { className: "jewel", value: 90 },
+    { className: "paradise", value: 20 },
     { className: "pizza", value:30 },
     { className: "love", value: 50 }
   ];
@@ -208,11 +208,21 @@ $(function(){
     return !item ? 0 : item.value;
   }
 
+  function actionIsDiag (a) {
+    return a % 2 == 1;
+  }
+
+  var SQRT_2 = Math.sqrt(2);
   function getReward (s, a, olds, olda) {
     var r = 0;
     r += noReturnReward(a, olda);
     r += objectsReward(olds);
     r += noWallReward(s);
+
+    if (!actionIsDiag(a)) {
+      r *= SQRT_2;
+    }
+
     return r;
   }
 
@@ -234,7 +244,7 @@ $(function(){
 
   function computeQL() {
     initActionState();
-    QL(WIDTH+HEIGHT, 0.3, 0.9);
+    QL(WIDTH+HEIGHT, 0.5, 0.95);
     dirty = true;
   }
 
@@ -417,6 +427,7 @@ $(function(){
 
   var $start = $("#start");
   $start.click(function(){
+    $start.attr("disabled", "disabled");
     start();
   });
 
