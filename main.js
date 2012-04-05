@@ -9,8 +9,8 @@ $(function(){
 
 
   // CONSTANTS
-  var DEAMON = { fillStyle: "rgb(255,0,100)", className: "deamon", value: -10 }
-  var JEWEL = { className: "jewel", value: 10, consumable: true }
+  var DEAMON = { fillStyle: "rgb(255,0,100)", className: "deamon", value: -50 }
+  var JEWEL = { className: "jewel", value: 50, consumable: true }
 
   var ACTIONS = [
     { x: -1, y:  0 }, // left
@@ -31,13 +31,13 @@ $(function(){
   for (var i = 0; i < 3; ++i) {
     var x = Math.floor(Math.random()*WIDTH);
     var y = Math.floor(Math.random()*HEIGHT);
-    objects.push($.extend({ x: x, y: y }, DEAMON));
+    objects.push($.extend({}, DEAMON, { x: x, y: y, value: Math.round(DEAMON.value*(1+Math.random()*0.5)) }));
     console.log("DEAMON at ", x, y);
   }
   for (var i = 0; i < 6; ++i) {
     var x = Math.floor(Math.random()*WIDTH);
     var y = Math.floor(Math.random()*HEIGHT);
-    objects.push($.extend({ x: x, y: y }, JEWEL));
+    objects.push($.extend({}, JEWEL, { x: x, y: y, value: Math.round(JEWEL.value*(1+Math.random()*0.5)) }));
     console.log("JEWEL at ", x, y);
   }
 
@@ -232,7 +232,8 @@ $(function(){
         addClass(o.className).
         css("top", $canvas.height()*((o.y+0.5)/HEIGHT)+'px').
         css("left", $canvas.width()*((o.x+0.5)/WIDTH)+'px').
-        append('<span />'));
+        append('<span class="image" />').
+        append($('<span class="weight" />').text(o.value)));
     });
     var $enableQL = $('#enableQL');
     $enableQL.on("change", function() {

@@ -39,7 +39,16 @@ canvas.disabled {
   z-index: 10;
 }
 
-#objects .object span {
+#objects .object span.weight {
+  position: relative;
+  top: -15px;
+  left: 5px;
+  font-size: 9px;
+  color: black;
+  background-color: rgba(255,255,255,1);
+  opacity: 0.5;
+}
+#objects .object span.image {
   position: relative;
   left: -8px;
   top: -8px;
@@ -49,10 +58,10 @@ canvas.disabled {
   background-repeat: no-repeat;
   background-position: 0px 0px;
 }
-.deamon span {
+.deamon span.image {
   background-image: url(deamon.png);
 }
-.jewel span {
+.jewel span.image {
   background-image: url(jewel.png);
 
 }
