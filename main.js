@@ -232,7 +232,7 @@ $(function(){
 
   function computeQL() {
     initActionState();
-    QL(WIDTH+HEIGHT, 0.1, 0.9);
+    QL(50, 0.1, 0.9);
     dirty = true;
   }
   computeQL();
@@ -297,8 +297,8 @@ $(function(){
     if (item != null) {
       removeItem(item);
       robot.eated.push({ x: robot.position.x, y: robot.position.y });
+      computeQL();
     }
-    computeQL();
     var actionMax = bestAction(robot.position);
     robot.position = move(robot.position, actionMax);
     robot.path.push({ x: robot.position.x, y: robot.position.y });
