@@ -41,6 +41,14 @@ $(function(){
     console.log("JEWEL at ", x, y);
   }
 
+  function finished () {
+    for (var i = 0; i < objects.length; ++i) {
+      if (objects[i].consumable)
+        return false;
+    }
+    return true;
+  }
+
   function removeItem (o) {
     var i = objects.indexOf(o);
     if (i != -1) {
@@ -191,6 +199,7 @@ $(function(){
   function computeQL() {
     initActionState();
     QL(WIDTH+HEIGHT, 0.1, 0.9, 3000);
+    dirty = true;
   }
   computeQL();
 
@@ -247,18 +256,15 @@ $(function(){
   robot.position = robot.initialPosition;
 
   function runRobotStep() {
-    var ret;
     var item = findItem(robot.position.x, robot.position.y);
     if (item != null) {
       removeItem(item);
       robot.eated.push({ x: robot.position.x, y: robot.position.y });
-      computeQL();
-      ret = "eated";
     }
+    computeQL();
     var actionMax = bestAction(robot.position);
     robot.position = move(robot.position, actionMax);
     robot.path.push({ x: robot.position.x, y: robot.position.y });
-    return ret;
   }
 
   function getCanvasPosition (p) {
@@ -322,18 +328,15 @@ $(function(){
     render();
   }, canvas);
 
-  dirty = true;
-
   var i = 0;
   var MAX_MOVE = 500;
   var interval = setInterval(function() {
     ++ i;
-    if (!objects.length || i > MAX_MOVE) {
+    if (finished() || i > MAX_MOVE) {
       clearInterval(interval);
       return;
     }
-    if (runRobotStep() == "eated")
-      dirty = true;
+    runRobotStep();
   }, 200);
 
   var pathCtx = $path[0].getContext("2d");
