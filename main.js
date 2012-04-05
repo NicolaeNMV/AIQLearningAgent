@@ -71,7 +71,7 @@ $(function(){
     if (i != -1) {
       objects.splice(i, 1);
     }
-    o.node.css("opacity", 0);
+    o.node.css("opacity", 0.2);
   }
 
   function findItem(x,y) {
@@ -338,11 +338,10 @@ $(function(){
         ctx.lineTo(p.x, p.y);
       }
       ctx.stroke();
-      ctx.fillStyle="rgb(100,255,100)";
       for (var i = 0; i < o.eated.length; ++i) {
         var p = getCanvasPosition(o.eated[i]);
         ctx.beginPath();
-        ctx.arc(p.x, p.y, 5, 0, 2*Math.PI);
+        ctx.arc(p.x, p.y, 2, 0, 2*Math.PI);
         ctx.fill();
       }
   }

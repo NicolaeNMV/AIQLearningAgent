@@ -40,16 +40,18 @@ canvas.disabled {
 }
 
 span.weight {
-  position: relative;
-  top: -15px;
+  position: absolute;
+  top: 5px;
   left: 5px;
-  font-size: 9px;
+  font-size: 12px;
+  border-radius: 5px;
+  padding: 0 2px;
   color: black;
   background-color: rgba(255,255,255,1);
-  opacity: 0.5;
+  opacity: 0.8;
 }
 span.image {
-  position: relative;
+  position: absolute;
   left: -8px;
   top: -8px;
   display: block;
@@ -78,15 +80,15 @@ span.image {
   width: 27px;
   height: 28px;
   left: -13.5px;
-  top: -14px;
+  top: -19px;
 }
 
 .veryangry span.image {
   background-image: url(images/veryangry.gif);
   width: 33px;
   height: 36px;
-  left: -16px;
-  top: -32px;
+  left: -18px;
+  top: -29px;
 }
 
 .paradise span.image {
@@ -94,15 +96,15 @@ span.image {
   width: 19px;
   height: 19px;
   left: -8px;
-  top: -8px;
+  top: -9px;
 }
 
 .pizza span.image {
   background-image: url(images/pizza.gif);
   width: 19px;
   height: 19px;
-  left: -8px;
-  top: -8px;
+  left: -9px;
+  top: -9px;
 }
 
 footer {
