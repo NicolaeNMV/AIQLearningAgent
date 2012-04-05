@@ -22,6 +22,18 @@ $(function(){
   TOYS.push( $.extend({ value:10,className:'love'}, goodProperty) )
   TOYS.push( $.extend({ value:10,className:'paradise'}, goodProperty) )
   TOYS.push( $.extend({ value:10,className:'pizza'}, goodProperty) )
+  TOYS.push( $.extend({ value:10,className:'jewel'}, goodProperty) )
+  TOYS.push( $.extend({ value:10,className:'love'}, goodProperty) )
+  TOYS.push( $.extend({ value:10,className:'paradise'}, goodProperty) )
+  TOYS.push( $.extend({ value:10,className:'pizza'}, goodProperty) )
+  TOYS.push( $.extend({ value:10,className:'jewel'}, goodProperty) )
+  TOYS.push( $.extend({ value:10,className:'love'}, goodProperty) )
+  TOYS.push( $.extend({ value:10,className:'paradise'}, goodProperty) )
+  TOYS.push( $.extend({ value:10,className:'pizza'}, goodProperty) )
+  TOYS.push( $.extend({ value:10,className:'jewel'}, goodProperty) )
+  TOYS.push( $.extend({ value:10,className:'love'}, goodProperty) )
+  TOYS.push( $.extend({ value:10,className:'paradise'}, goodProperty) )
+  TOYS.push( $.extend({ value:10,className:'pizza'}, goodProperty) )
 
 
   
@@ -374,8 +386,4 @@ $(function(){
       $step.text(i);
     }
   }, $path[0]);
-
-
-
-
 });
