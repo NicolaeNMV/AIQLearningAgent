@@ -145,15 +145,14 @@ $(function(){
   }
 
 
-  function bestAction (s, addReward) {
-    if (!addReward) addReward = function(s, a){ return 0 };
+  function bestAction (s) {
     var bestA = 0; //Math.floor(Math.random()*8);
     var best = Q(move(s, bestA), bestA);
     for (var a = 1; a < ACTIONS.length; ++a) {
       if (outOfRange(s)) 
         continue; // OUT OF RANGE
       var next = move(s, a);
-      var v = Q(next, a) + addReward(s, a);
+      var v = Q(next, a);
       if(v > best) {
         best = v;
         bestA = a;
@@ -167,16 +166,18 @@ $(function(){
 
 
   function getReward (s, a, olds, olda) {
+
+    return 0;
+    // FIXME
+
     var r = 0;
 
     // init r with a value in [-2, 2] depending on the angle change (it's better to continue forward)
-    /*
     var diff = (16+olda - a)%8;
     if (diff > 4)
       diff -= 8;
     diff = Math.abs(diff);
     r = 2 - diff;
-    */
 
     return r;
   }
@@ -191,7 +192,7 @@ $(function(){
         var s = {x: x, y: y};
         var aprime = bestAction(s);
         var sprime = move(s, aprime);
-        return qsa + alpha*(/*getReward(sprime, aprime, s, a) +*/ gamma*Q(sprime, aprime) - qsa);
+        return qsa + alpha*(getReward(sprime, aprime, s, a) + gamma*Q(sprime, aprime) - qsa);
       });
       computeStateFromActionState();
     }
@@ -255,7 +256,6 @@ $(function(){
   };
 
   robot.position = robot.initialPosition;
-  robot.action = 0;
 
   function runRobotStep() {
     var item = findItem(robot.position.x, robot.position.y);
@@ -264,11 +264,8 @@ $(function(){
       robot.eated.push({ x: robot.position.x, y: robot.position.y });
       computeQL();
     }
-    var actionMax = bestAction(robot.position, function (s, a) {
-      return getReward(s, a, robot.position, robot.action);
-    });
+    var actionMax = bestAction(robot.position);
     robot.position = move(robot.position, actionMax);
-    robot.action = actionMax;
     robot.path.push({ x: robot.position.x, y: robot.position.y });
   }
 
