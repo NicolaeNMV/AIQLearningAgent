@@ -47,7 +47,6 @@ $(function(){
     var O = GOODS[i%GOODS.length];
     objects.push( $.extend({}, O, { x: x, y: y, value: Math.round(O.value*(1+Math.random()*0.2)) }) );
   }
-
   
   for (var i = 0; i < NB_BADS; ++ i) {
     var x = Math.floor(Math.random()*WIDTH);
@@ -162,13 +161,16 @@ $(function(){
 
 
   function bestAction (s) {
-    var bestA = 0; //Math.floor(Math.random()*8);
-    var best = Q(move(s, bestA), bestA);
-    for (var a = 1; a < ACTIONS.length; ++a) {
-      if (outOfRange(s)) 
-        continue; // OUT OF RANGE
+    var bestA, best;
+    for (var a = 0; a < ACTIONS.length; ++a) {
       var next = move(s, a);
+      if (outOfRange(next)) 
+        continue; // OUT OF RANGE
       var v = Q(next, a);
+      if (bestA === undefined) {
+        bestA = a;
+        best = v;
+      }
       if(v > best) {
         best = v;
         bestA = a;
