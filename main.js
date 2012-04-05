@@ -245,10 +245,10 @@ $(function(){
       ctx.lineWidth = 1;
       ctx.fillStyle="black";
       ctx.beginPath();
-      ctx.arc(myPos.x, myPos.y, 4, 0, 2*Math.PI);
+      ctx.arc(myPos.x*WIDTH, myPos.y*HEIGHT, 4, 0, 2*Math.PI);
       ctx.fill();
       ctx.beginPath();
-      ctx.moveTo(myPos.x, myPos.y);
+      ctx.moveTo(myPos.x*WIDTH, myPos.y*HEIGHT);
       while(objects.length && --maxI) {
         var actionMax = bestAction(myPos);
         myPos = move(myPos,actionMax);
