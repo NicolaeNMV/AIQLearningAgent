@@ -54,6 +54,7 @@ $(function(){
     if (i != -1) {
       objects.splice(i, 1);
     }
+    o.node.css("opacity", 0);
   }
 
   function findItem(x,y) {
@@ -228,12 +229,14 @@ $(function(){
   function setup () {
     var $objects = $('#objects');
     objects.forEach(function (o) {
-      $objects.append($('<div class="object" />').
+      var node = $('<div class="object" />').
         addClass(o.className).
         css("top", $canvas.height()*((o.y+0.5)/HEIGHT)+'px').
         css("left", $canvas.width()*((o.x+0.5)/WIDTH)+'px').
         append('<span class="image" />').
-        append($('<span class="weight" />').text(o.value)));
+        append($('<span class="weight" />').text(o.value));
+      o.node = node;
+      $objects.append(node);
     });
     var $enableQL = $('#enableQL');
     $enableQL.on("change", function() {
@@ -263,8 +266,8 @@ $(function(){
     if (item != null) {
       removeItem(item);
       robot.eated.push({ x: robot.position.x, y: robot.position.y });
-      computeQL();
     }
+    computeQL();
     var actionMax = bestAction(robot.position);
     robot.position = move(robot.position, actionMax);
     robot.path.push({ x: robot.position.x, y: robot.position.y });
@@ -298,12 +301,12 @@ $(function(){
         ctx.lineTo(p.x, p.y);
       }
       ctx.stroke();
-      ctx.strokeStyle="white";
+      ctx.fillStyle="rgb(100,255,100)";
       for (var i = 0; i < o.eated.length; ++i) {
         var p = getCanvasPosition(o.eated[i]);
         ctx.beginPath();
-        ctx.arc(p.x, p.y, 10, 0, 2*Math.PI);
-        ctx.stroke();
+        ctx.arc(p.x, p.y, 5, 0, 2*Math.PI);
+        ctx.fill();
       }
   }
 
