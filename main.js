@@ -79,7 +79,7 @@ $(function(){
     if (i != -1) {
       objects.splice(i, 1);
     }
-    o.node.css("opacity", 0.2);
+    o.node.addClass("eated");
   }
 
   function findItem(x,y) {
@@ -196,10 +196,6 @@ $(function(){
   function noWallReward (s) {
     if (s.x == 0 || s.y == 0 || s.x == WIDTH-1 || s.y == HEIGHT-1)
       return -1;
-    /*
-    if (s.x == 1 || s.y == 1 || s.x == WIDTH-2 || s.y == HEIGHT-2)
-      return 0;
-    */
     return 1;
   }
 
@@ -221,7 +217,7 @@ $(function(){
     r += objectsReward(olds);
     r += noWallReward(s);
 
-    if (!actionIsDiag(a)) {
+    if (!actionIsDiag(olda)) {
       r *= SQRT_2;
     }
 
@@ -416,7 +412,6 @@ $(function(){
       run();
   }
 
-
   var $enableAnimation = $('#enableAnimation');
   $enableAnimation.on("change", function() {
     if($(this).is(":checked")) {
@@ -431,6 +426,6 @@ $(function(){
   $start.click(function(){
     $start.attr("disabled", "disabled");
     start();
-  });
+  }).click();
 
 });
