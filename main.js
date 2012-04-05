@@ -4,6 +4,9 @@ $(function(){
   var canvas = $canvas[0];
   var $num_iteration = $('#stats .num_iteration');
 
+  var WIDTH = 30;
+  var HEIGHT = 20;
+
 
   // CONSTANTS
   var DEAMON = { fillStyle: "rgb(255,0,100)", className: "deamon", value: -20 }
@@ -26,14 +29,14 @@ $(function(){
   // STATES
   var objects = [];
   for (var i = 0; i < 3; ++i) {
-    var x = Math.floor(Math.random()*canvas.width);
-    var y = Math.floor(Math.random()*canvas.height);
+    var x = Math.floor(Math.random()*WIDTH);
+    var y = Math.floor(Math.random()*HEIGHT);
     objects.push($.extend({ x: x, y: y }, DEAMON));
     console.log("DEAMON at ", x, y);
   }
   for (var i = 0; i < 6; ++i) {
-    var x = Math.floor(Math.random()*canvas.width);
-    var y = Math.floor(Math.random()*canvas.height);
+    var x = Math.floor(Math.random()*WIDTH);
+    var y = Math.floor(Math.random()*HEIGHT);
     objects.push($.extend({ x: x, y: y }, JEWEL));
     console.log("JEWEL at ", x, y);
   }
@@ -84,8 +87,8 @@ $(function(){
     for (var i = 0; i < actionsStates.length; ++i)
       old[i] = actionsStates[i];
 
-    for (var y = 0; y < canvas.height; ++ y) {
-      for (var x = 0; x < canvas.width; ++ x) {
+    for (var y = 0; y < HEIGHT; ++ y) {
+      for (var x = 0; x < WIDTH; ++ x) {
         for (var a = 0; a < ACTIONS.length; ++ a) {
           var i = getActionStateIndex(x, y, a);
           actionsStates[i] = f(x, y, a, old[i]);
@@ -94,7 +97,7 @@ $(function(){
     }
   }
   function getActionStateIndex (x, y, a) {
-    return a+ACTIONS.length*(x + y*canvas.width);
+    return a+ACTIONS.length*(x + y*WIDTH);
   }
   function getActionState (x, y, a) {
     return actionsStates[ getActionStateIndex(x, y, a) ];
@@ -106,9 +109,9 @@ $(function(){
   // newValue = f (x, y, currentValue) 
   // is called for each state
   function applyForEachState (f) {
-    for (var y = 0; y < canvas.height; ++ y) {
-      for (var x = 0; x < canvas.width; ++ x) {
-        var i = y*canvas.width + x;
+    for (var y = 0; y < HEIGHT; ++ y) {
+      for (var x = 0; x < WIDTH; ++ x) {
+        var i = y*WIDTH + x;
         states[i] = f(x, y, states[i]);
       }
     }
@@ -127,8 +130,8 @@ $(function(){
   function move (s, a) {
     var disp = ACTIONS[a];
     return { 
-      x: constraint(0, canvas.width-1, s.x + disp.x), 
-      y: constraint(0, canvas.height-1, s.y + disp.y)
+      x: constraint(0, WIDTH-1, s.x + disp.x), 
+      y: constraint(0, HEIGHT-1, s.y + disp.y)
     }
   }
 
@@ -187,15 +190,15 @@ $(function(){
 
   function computeQL() {
     initActionState();
-    QL(50, 0.04, 0.9, 3000);
+    QL(50, 0.1, 0.9, 3000);
   }
   computeQL();
 
   function computeStateFromActionState () {
-    for (var y = 0; y < canvas.height; ++ y) {
-      for (var x = 0; x < canvas.width; ++ x) {
+    for (var y = 0; y < HEIGHT; ++ y) {
+      for (var x = 0; x < WIDTH; ++ x) {
         var sum = 0;
-        var s = x + y*canvas.width;
+        var s = x + y*WIDTH;
         for (var a = 0; a < ACTIONS.length; ++ a) {
           var i = a+ACTIONS.length*s;
           sum += actionsStates[i];
@@ -207,6 +210,8 @@ $(function(){
 
   // RENDERING
   var ctx = canvas.getContext('2d');
+  ctx.scale(canvas.width/WIDTH, canvas.height/HEIGHT);
+
   var qlEnabled;
 
   function setup () {
@@ -214,8 +219,8 @@ $(function(){
     objects.forEach(function (o) {
       $objects.append($('<div class="object" />').
         addClass(o.className).
-        css("top", $canvas.height()*((o.y+0.5)/canvas.height)+'px').
-        css("left", $canvas.width()*((o.x+0.5)/canvas.width)+'px').
+        css("top", $canvas.height()*((o.y+0.5)/HEIGHT)+'px').
+        css("left", $canvas.width()*((o.x+0.5)/WIDTH)+'px').
         append('<span />'));
     });
     var $enableQL = $('#enableQL');
@@ -233,36 +238,31 @@ $(function(){
   }
 
   function drawBestPath(ctx) {
-      var myPos = { x: Math.floor(Math.random()*canvas.width/2 + canvas.width/4), 
-                    y: Math.floor(Math.random()*canvas.height/2 + canvas.height/4) };
-      var maxI=100000;
+      var myPos = { x: Math.floor(Math.random()*WIDTH/2 + WIDTH/4), 
+                    y: Math.floor(Math.random()*HEIGHT/2 + HEIGHT/4) };
+      var maxI=100;
+      ctx.strokeStyle="black";
+      ctx.lineWidth = 1;
       ctx.fillStyle="black";
-      while(objects.length) {
-          var actionMax=0, 
-          actionValMax=actionsStates[getActionStateIndex(myPos.x, myPos.y, 0)];
-          //getReward(myPos,)
-          for (var a = 1; a < ACTIONS.length; ++ a) {
-            var i = getActionStateIndex(myPos.x, myPos.y, a);
-            
-            if (actionsStates[i] > actionValMax) {
-              actionValMax = actionsStates[i];
-              actionMax = a;
-            }
-          }
-          myPos = move(myPos,actionMax);
-          //console.log(i + "  Action " + actionMax + " New pos x" + myPos.x + " y" + myPos.y)
-          if (maxI-- == 0) break;
-          ctx.fillRect(myPos.x,myPos.y,1,1);
-          var item = findItem(myPos.x,myPos.y);
-          if (item != null) {
-            removeItem(item);
-            console.log("Remove " + item);
-            computeQL();
-          }
+      ctx.beginPath();
+      ctx.arc(myPos.x, myPos.y, 4, 0, 2*Math.PI);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(myPos.x, myPos.y);
+      while(objects.length && --maxI) {
+        var actionMax = bestAction(myPos);
+        myPos = move(myPos,actionMax);
+        ctx.lineTo(myPos.x*WIDTH, myPos.y*HEIGHT);
+        var item = findItem(myPos.x, myPos.y);
+        if (item != null) {
+          removeItem(item);
+          computeQL();
+        }
       }
+      ctx.stroke();
   }
 
-  var imgData = ctx.createImageData(canvas.width, canvas.height);
+  //var imgData = ctx.createImageData(canvas.width, canvas.height);
   function render () {
     if (!dirty || !qlEnabled) return;
     dirty = false;
@@ -274,15 +274,20 @@ $(function(){
     });
 
     forEachState(function (x, y, v) {
+      
       var p = smoothstep(min, max, v);
       var r = Math.floor((1-p)*255), g = Math.floor(p*255), b = 0;
+      /*
       var i = (y*canvas.width+x)*4;
       imgData.data[i]   = r;
       imgData.data[i+1] = g;
       imgData.data[i+2] = b;
       imgData.data[i+3] = 255;
+      */
+      ctx.fillStyle = "rgb("+[r,g,b]+")";
+      ctx.fillRect(x, y, 1, 1);
     });
-    ctx.putImageData(imgData, 0, 0);
+    //ctx.putImageData(imgData, 0, 0);
 
     //drawBestPath(ctx);
 
