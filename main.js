@@ -237,32 +237,62 @@ $(function(){
     }).change();
   }
 
-  function drawBestPath(ctx) {
+  function runRobotLife(maxI) {
       var myPos = { x: Math.floor(Math.random()*WIDTH/2 + WIDTH/4), 
                     y: Math.floor(Math.random()*HEIGHT/2 + HEIGHT/4) };
-      var maxI=100;
+      var path = [];
+      var initialPosition = { x: myPos.x, y: myPos.y };
+      var itemEated = [];
+      while(objects.length && --maxI) {
+        var actionMax = bestAction(myPos);
+        myPos = move(myPos,actionMax);
+        path.push({ x: myPos.x, y: myPos.y });
+        var item = findItem(myPos.x, myPos.y);
+        if (item != null) {
+          removeItem(item);
+          itemEated.push({ x: myPos.x, y: myPos.y });
+          computeQL();
+        }
+      }
+      return { 
+        initialPosition: initialPosition, 
+        path: path, 
+        itemEated: itemEated 
+      };
+  }
+
+  function getCanvasPosition (p) {
+    return {
+      x: (p.x+0.5)*canvas.width/WIDTH,
+      y: (p.y+0.5)*canvas.height/HEIGHT
+    }
+  }
+
+  function drawRobotLife(ctx, o) {
+      var p;
       ctx.strokeStyle="black";
       ctx.lineWidth = 1;
       ctx.fillStyle="black";
       ctx.beginPath();
-      ctx.arc((myPos.x+0.5)*WIDTH, (myPos.y+0.5)*HEIGHT, 4, 0, 2*Math.PI);
+      p = getCanvasPosition(o.initialPosition);
+      ctx.arc(p.x, p.y, 4, 0, 2*Math.PI);
       ctx.fill();
       ctx.beginPath();
-      ctx.moveTo((myPos.x+0.5)*WIDTH, (myPos.y+0.5)*HEIGHT);
-      while(objects.length && --maxI) {
-        var actionMax = bestAction(myPos);
-        myPos = move(myPos,actionMax);
-        ctx.lineTo((myPos.x+0.5)*WIDTH, (myPos.y+0.5)*HEIGHT);
-        var item = findItem(myPos.x, myPos.y);
-        if (item != null) {
-          removeItem(item);
-          computeQL();
-        }
+      ctx.moveTo(p.x, p.y);
+      for (var i = 0; i < o.path.length; ++i) {
+        var p = getCanvasPosition(o.path[i]);
+        ctx.lineTo(p.x, p.y);
       }
       ctx.stroke();
+      ctx.strokeStyle="white";
+      for (var i = 0; i < o.itemEated.length; ++i) {
+        var p = getCanvasPosition(o.itemEated[i]);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 10, 0, 2*Math.PI);
+        ctx.stroke();
+      }
   }
 
-  //var imgData = ctx.createImageData(canvas.width, canvas.height);
   function render () {
     if (!dirty || !qlEnabled) return;
     dirty = false;
@@ -274,30 +304,11 @@ $(function(){
     });
 
     forEachState(function (x, y, v) {
-      
       var p = smoothstep(min, max, v);
       var r = Math.floor((1-p)*255), g = Math.floor(p*255), b = 0;
-      /*
-      var i = (y*canvas.width+x)*4;
-      imgData.data[i]   = r;
-      imgData.data[i+1] = g;
-      imgData.data[i+2] = b;
-      imgData.data[i+3] = 255;
-      */
       ctx.fillStyle = "rgb("+[r,g,b]+")";
       ctx.fillRect(x, y, 1, 1);
     });
-    //ctx.putImageData(imgData, 0, 0);
-
-    //drawBestPath(ctx);
-
-    /*
-    return
-    objects.forEach(function (o) {
-      ctx.fillStyle = o.fillStyle;
-      ctx.fillRect(o.x, o.y, 1, 1);
-    });
-    */
   }
 
   setup();
@@ -307,8 +318,13 @@ $(function(){
   }, canvas);
 
 
+  var path = runRobotLife(100);
+
+  console.log(path);
+
   var pathCtx = $path[0].getContext("2d");
-  drawBestPath(pathCtx);
+  drawRobotLife(pathCtx, path);
+
   dirty = true;
 
 
