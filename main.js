@@ -260,8 +260,8 @@ $(function(){
     if (item != null) {
       removeItem(item);
       robot.eated.push({ x: robot.position.x, y: robot.position.y });
+      computeQL();
     }
-    computeQL();
     var actionMax = bestAction(robot.position);
     robot.position = move(robot.position, actionMax);
     robot.path.push({ x: robot.position.x, y: robot.position.y });
