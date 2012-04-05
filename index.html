@@ -14,6 +14,14 @@
       <h1>Q-Learning</h1>
     </header>
 
+    <div id="buttons">
+      <input type="checkbox" id="enableQL" name="enableQL" checked="checked" />
+      <label for="enableQL">visualize QL</label>
+      <input type="checkbox" id="enableAnimation" name="enableAnimation" checked="checked" />
+      <label for="enableAnimation">animation</label>
+      <button id="start">start</button>
+    </div>
+
     <div id="experiment">
       <canvas id="path" width="600" height="400"></canvas>
       <canvas id="viewport" width="600" height="400"></canvas>
@@ -24,10 +32,6 @@
       pas n°<span class="step"></span>
     </div>
 
-    <div id="buttons">
-      <input type="checkbox" id="enableQL" name="enableQL" checked="checked" />
-      <label for="enableQL">visualize QL</label>
-    </div>
   </div>
 </body>
 </html>

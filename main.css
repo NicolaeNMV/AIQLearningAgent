@@ -19,6 +19,11 @@ canvas.disabled {
 #experiment {
   position: relative;
   background: white;
+  overflow: hidden;
+}
+
+#buttons {
+  margin: 5px 0;
 }
 
 #path {

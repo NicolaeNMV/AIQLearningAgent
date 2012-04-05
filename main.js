@@ -10,11 +10,11 @@ $(function(){
   var NB_GOODS = 6;
   var NB_BADS = 4;
 
+  var MAX_MOVE = 1000;
+
   // CONSTANTS
   
-
   // reward object values must be normalized in a [-100, 100] range
-
   var GOODS = [
     { className: "jewel", value: 15 },
     { className: "paradise", value: 12 },
@@ -40,13 +40,21 @@ $(function(){
 
   // dirty variables used for rendering
   var dirty = true;
+  var robotDirty = true;
+
+  var enableAnimation;
 
   // STATES
   var objects = [];
 
   function putObject (O) {
-    var x = Math.floor(Math.random()*WIDTH);
-    var y = Math.floor(Math.random()*HEIGHT);
+    var x, y;
+    var i = 10;
+    do {
+      x = Math.floor((0.95*Math.random())*WIDTH);
+      y = Math.floor((0.95*Math.random())*HEIGHT);
+    } while ( 0 <-- i && findItem(x, y) );
+
     objects.push( $.extend({}, O, { x: x, y: y, value: Math.floor(O.value*(0.8+0.1*Math.random())) }) );
   }
 
@@ -92,17 +100,6 @@ $(function(){
     applyForEachActionState(function(){ 
       return Math.random()*0.3; 
     });
-    /*
-    objects.forEach(function (o) {
-      for (var a = 0; a < ACTIONS.length; ++a) {
-        var adj = move(o, a);
-        for (var i = 0; i < ACTIONS.length; ++i) {
-          setActionState(adj.x, adj.y, a, o.value);
-        }
-        setActionState(o.x, o.y, a, o.value);
-      }
-    });
-    */
   }
 
   var states = [];
@@ -163,7 +160,6 @@ $(function(){
       y: constraint(0, HEIGHT-1, s.y + disp.y)
     }
   }
-
 
   function bestAction (s) {
     var bestA, best;
@@ -238,10 +234,9 @@ $(function(){
 
   function computeQL() {
     initActionState();
-    QL(50, 0.2, 0.99);
+    QL(WIDTH+HEIGHT, 0.3, 0.9);
     dirty = true;
   }
-  computeQL();
 
   function computeStateFromActionState () {
     for (var y = 0; y < HEIGHT; ++ y) {
@@ -308,6 +303,7 @@ $(function(){
     var actionMax = bestAction(robot.position);
     robot.position = move(robot.position, actionMax);
     robot.path.push({ x: robot.position.x, y: robot.position.y });
+    robotDirty = true;
   }
 
   function getCanvasPosition (p) {
@@ -318,32 +314,34 @@ $(function(){
   }
 
   function renderRobot(ctx, o) {
-      ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
-      var p;
-      ctx.strokeStyle="black";
-      ctx.lineWidth = 1;
-      ctx.fillStyle="black";
+    if (!robotDirty) return;
+    robotDirty = false;
+    ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+    var p;
+    ctx.strokeStyle="black";
+    ctx.lineWidth = 1;
+    ctx.fillStyle="black";
+    ctx.beginPath();
+    p = getCanvasPosition(o.position);
+    ctx.arc(p.x, p.y, 4, 0, 2*Math.PI);
+    ctx.fill();
+    p = getCanvasPosition(o.initialPosition);
+    ctx.arc(p.x, p.y, 2, 0, 2*Math.PI);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+    for (var i = 0; i < o.path.length; ++i) {
+      var p = getCanvasPosition(o.path[i]);
+      ctx.lineTo(p.x, p.y);
+    }
+    ctx.stroke();
+    for (var i = 0; i < o.eated.length; ++i) {
+      var p = getCanvasPosition(o.eated[i]);
       ctx.beginPath();
-      p = getCanvasPosition(o.position);
-      ctx.arc(p.x, p.y, 4, 0, 2*Math.PI);
-      ctx.fill();
-      p = getCanvasPosition(o.initialPosition);
       ctx.arc(p.x, p.y, 2, 0, 2*Math.PI);
       ctx.fill();
-      ctx.beginPath();
-      ctx.beginPath();
-      ctx.moveTo(p.x, p.y);
-      for (var i = 0; i < o.path.length; ++i) {
-        var p = getCanvasPosition(o.path[i]);
-        ctx.lineTo(p.x, p.y);
-      }
-      ctx.stroke();
-      for (var i = 0; i < o.eated.length; ++i) {
-        var p = getCanvasPosition(o.eated[i]);
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 2, 0, 2*Math.PI);
-        ctx.fill();
-      }
+    }
   }
 
   function render () {
@@ -370,25 +368,56 @@ $(function(){
     render();
   }, canvas);
 
-  var i = 0;
-  var MAX_MOVE = 500;
-  var interval = setInterval(function() {
-    ++ i;
-    if (finished() || i > MAX_MOVE) {
-      clearInterval(interval);
-      return;
-    }
-    runRobotStep();
-  }, 200);
 
   var pathCtx = $path[0].getContext("2d");
-  var lastI = -1;
   requestAnimFrame(function loop () {
     requestAnimFrame(loop);
-    if (lastI != i) {
-      lastI = i;
-      renderRobot(pathCtx, robot);
-      $step.text(i);
-    }
+    renderRobot(pathCtx, robot);
   }, $path[0]);
+
+  function runAnimated () {
+    computeQL();
+    var i = 0;
+    var interval = setInterval(function() {
+      ++ i;
+      if (finished() || i > MAX_MOVE) {
+        clearInterval(interval);
+        return;
+      }
+      $step.text(i);
+      runRobotStep();
+    }, 200);
+  }
+
+  function run () {
+    computeQL();
+    $step.text('');
+    for (var i = 0; i < MAX_MOVE && !finished(); ++ i) {
+      runRobotStep();
+    }
+  }
+
+  function start () {
+    if (enableAnimation)
+      runAnimated();
+    else
+      run();
+  }
+
+
+  var $enableAnimation = $('#enableAnimation');
+  $enableAnimation.on("change", function() {
+    if($(this).is(":checked")) {
+      enableAnimation = true;
+    }
+    else {
+      enableAnimation = false;
+    }
+  }).change();
+
+  var $start = $("#start");
+  $start.click(function(){
+    start();
+  });
+
 });
