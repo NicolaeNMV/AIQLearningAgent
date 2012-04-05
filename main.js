@@ -245,14 +245,14 @@ $(function(){
       ctx.lineWidth = 1;
       ctx.fillStyle="black";
       ctx.beginPath();
-      ctx.arc(myPos.x*WIDTH, myPos.y*HEIGHT, 4, 0, 2*Math.PI);
+      ctx.arc((myPos.x+0.5)*WIDTH, (myPos.y+0.5)*HEIGHT, 4, 0, 2*Math.PI);
       ctx.fill();
       ctx.beginPath();
-      ctx.moveTo(myPos.x*WIDTH, myPos.y*HEIGHT);
+      ctx.moveTo((myPos.x+0.5)*WIDTH, (myPos.y+0.5)*HEIGHT);
       while(objects.length && --maxI) {
         var actionMax = bestAction(myPos);
         myPos = move(myPos,actionMax);
-        ctx.lineTo(myPos.x*WIDTH, myPos.y*HEIGHT);
+        ctx.lineTo((myPos.x+0.5)*WIDTH, (myPos.y+0.5)*HEIGHT);
         var item = findItem(myPos.x, myPos.y);
         if (item != null) {
           removeItem(item);
