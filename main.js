@@ -7,37 +7,23 @@ $(function(){
   var WIDTH = 30;
   var HEIGHT = 20;
 
+  var NB_GOODS = 6;
+  var NB_BADS = 4;
 
   // CONSTANTS
-  var DEAMON = { fillStyle: "rgb(255,0,100)", className: "deamon", value: -50 }
-  var JEWEL = { className: "jewel", value: 50, consumable: true }
-
-  var goodProperty = {consumable: true}
-  var badProperty = { fillStyle: "rgb(255,0,100)" }
-  var TOYS = []
-  TOYS.push( $.extend({ value:-10,className:'hellfire'}, badProperty) )
-  TOYS.push( $.extend({ value:-10,className:'deamon'}, badProperty) )
-  TOYS.push( $.extend({ value:-10,className:'veryangry'}, goodProperty) )
-  TOYS.push( $.extend({ value:10,className:'jewel'}, goodProperty) )
-  TOYS.push( $.extend({ value:10,className:'love'}, goodProperty) )
-  TOYS.push( $.extend({ value:10,className:'paradise'}, goodProperty) )
-  TOYS.push( $.extend({ value:10,className:'pizza'}, goodProperty) )
-  TOYS.push( $.extend({ value:10,className:'jewel'}, goodProperty) )
-  TOYS.push( $.extend({ value:10,className:'love'}, goodProperty) )
-  TOYS.push( $.extend({ value:10,className:'paradise'}, goodProperty) )
-  TOYS.push( $.extend({ value:10,className:'pizza'}, goodProperty) )
-  TOYS.push( $.extend({ value:10,className:'jewel'}, goodProperty) )
-  TOYS.push( $.extend({ value:10,className:'love'}, goodProperty) )
-  TOYS.push( $.extend({ value:10,className:'paradise'}, goodProperty) )
-  TOYS.push( $.extend({ value:10,className:'pizza'}, goodProperty) )
-  TOYS.push( $.extend({ value:10,className:'jewel'}, goodProperty) )
-  TOYS.push( $.extend({ value:10,className:'love'}, goodProperty) )
-  TOYS.push( $.extend({ value:10,className:'paradise'}, goodProperty) )
-  TOYS.push( $.extend({ value:10,className:'pizza'}, goodProperty) )
-
-
   
-
+  var GOODS = [
+    { className: "jewel", value: 15 },
+    { className: "paradise", value: 12 },
+    { className: "pizza", value:30 },
+    { className: "love", value: 50 }
+  ];
+  var BADS = [
+    { className: "deamon",    value: -50 },
+    { className: "hellfire",  value: -10 },
+    { className: "veryangry", value: -10 }
+  ];
+  
   var ACTIONS = [
     { x: -1, y:  0 }, // left
     { x: -1, y: -1 }, // top left
@@ -54,27 +40,25 @@ $(function(){
 
   // STATES
   var objects = [];
-  /*for (var i = 0; i < 3; ++i) {
+
+  for (var i = 0; i < NB_GOODS; ++ i) {
     var x = Math.floor(Math.random()*WIDTH);
     var y = Math.floor(Math.random()*HEIGHT);
-    objects.push($.extend({}, DEAMON, { x: x, y: y, value: Math.round(DEAMON.value*(1+Math.random()*0.5)) }));
-    console.log("DEAMON at ", x, y);
+    var O = GOODS[i%GOODS.length];
+    objects.push( $.extend({}, O, { x: x, y: y, value: Math.round(O.value*(1+Math.random()*0.2)) }) );
   }
-  for (var i = 0; i < 6; ++i) {
+
+  
+  for (var i = 0; i < NB_BADS; ++ i) {
     var x = Math.floor(Math.random()*WIDTH);
     var y = Math.floor(Math.random()*HEIGHT);
-    objects.push($.extend({}, JEWEL, { x: x, y: y, value: Math.round(JEWEL.value*(1+Math.random()*0.5)) }));
-    console.log("JEWEL at ", x, y);
-  }*/
-  for (var i = 0; i<TOYS.length; ++i) {
-    var x = Math.floor(Math.random()*WIDTH);
-    var y = Math.floor(Math.random()*HEIGHT);
-    objects.push($.extend({ x: x, y: y }, TOYS[i]));
-  } 
+    var O = BADS[i%BADS.length];
+    objects.push( $.extend({}, O, { x: x, y: y, value: Math.round(O.value*(1+Math.random()*0.2)) }) );
+  }
 
   function finished () {
     for (var i = 0; i < objects.length; ++i) {
-      if (objects[i].consumable)
+      if (objects[i].value > 0)
         return false;
     }
     return true;
