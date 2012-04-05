@@ -2,7 +2,7 @@ $(function(){
   var $canvas = $('#viewport');
   var $path = $('#path');
   var canvas = $canvas[0];
-  var $num_iteration = $('#stats .num_iteration');
+  var $step = $('#stats .step');
 
   var WIDTH = 30;
   var HEIGHT = 20;
@@ -10,7 +10,7 @@ $(function(){
 
   // CONSTANTS
   var DEAMON = { fillStyle: "rgb(255,0,100)", className: "deamon", value: -10 }
-  var JEWEL = { className: "jewel", value: 5, consumable: true }
+  var JEWEL = { className: "jewel", value: 10, consumable: true }
 
   var ACTIONS = [
     { x: -1, y:  0 }, // left
@@ -185,13 +185,12 @@ $(function(){
         return qsa + alpha*(getReward(sprime, aprime, s, a) + gamma*Q(sprime, aprime) - qsa);
       });
       computeStateFromActionState();
-      $num_iteration.text(i);
     }
   }
 
   function computeQL() {
     initActionState();
-    QL(50, 0.1, 0.9, 3000);
+    QL(WIDTH+HEIGHT, 0.1, 0.9, 3000);
   }
   computeQL();
 
@@ -238,28 +237,28 @@ $(function(){
     }).change();
   }
 
-  function runRobotLife(maxI) {
-      var myPos = { x: Math.floor(Math.random()*WIDTH/2 + WIDTH/4), 
-                    y: Math.floor(Math.random()*HEIGHT/2 + HEIGHT/4) };
-      var path = [];
-      var initialPosition = { x: myPos.x, y: myPos.y };
-      var itemEated = [];
-      while(objects.length && --maxI) {
-        var item = findItem(myPos.x, myPos.y);
-        if (item != null) {
-          removeItem(item);
-          itemEated.push({ x: myPos.x, y: myPos.y });
-          computeQL();
-        }
-        var actionMax = bestAction(myPos);
-        myPos = move(myPos,actionMax);
-        path.push({ x: myPos.x, y: myPos.y });
-      }
-      return { 
-        initialPosition: initialPosition, 
-        path: path, 
-        itemEated: itemEated 
-      };
+  var robot = {
+    initialPosition: { x: Math.floor(Math.random()*WIDTH/2 + WIDTH/4), 
+                    y: Math.floor(Math.random()*HEIGHT/2 + HEIGHT/4) },
+    path: [],
+    eated: []
+  };
+
+  robot.position = robot.initialPosition;
+
+  function runRobotStep() {
+    var ret;
+    var item = findItem(robot.position.x, robot.position.y);
+    if (item != null) {
+      removeItem(item);
+      robot.eated.push({ x: robot.position.x, y: robot.position.y });
+      computeQL();
+      ret = "eated";
+    }
+    var actionMax = bestAction(robot.position);
+    robot.position = move(robot.position, actionMax);
+    robot.path.push({ x: robot.position.x, y: robot.position.y });
+    return ret;
   }
 
   function getCanvasPosition (p) {
@@ -269,15 +268,20 @@ $(function(){
     }
   }
 
-  function drawRobotLife(ctx, o) {
+  function renderRobot(ctx, o) {
+      ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
       var p;
       ctx.strokeStyle="black";
       ctx.lineWidth = 1;
       ctx.fillStyle="black";
       ctx.beginPath();
-      p = getCanvasPosition(o.initialPosition);
+      p = getCanvasPosition(o.position);
       ctx.arc(p.x, p.y, 4, 0, 2*Math.PI);
       ctx.fill();
+      p = getCanvasPosition(o.initialPosition);
+      ctx.arc(p.x, p.y, 2, 0, 2*Math.PI);
+      ctx.fill();
+      ctx.beginPath();
       ctx.beginPath();
       ctx.moveTo(p.x, p.y);
       for (var i = 0; i < o.path.length; ++i) {
@@ -286,8 +290,8 @@ $(function(){
       }
       ctx.stroke();
       ctx.strokeStyle="white";
-      for (var i = 0; i < o.itemEated.length; ++i) {
-        var p = getCanvasPosition(o.itemEated[i]);
+      for (var i = 0; i < o.eated.length; ++i) {
+        var p = getCanvasPosition(o.eated[i]);
         ctx.beginPath();
         ctx.arc(p.x, p.y, 10, 0, 2*Math.PI);
         ctx.stroke();
@@ -320,15 +324,29 @@ $(function(){
 
   dirty = true;
 
-  //setTimeout(function() {
+  var i = 0;
+  var MAX_MOVE = 500;
+  var interval = setInterval(function() {
+    ++ i;
+    if (!objects.length || i > MAX_MOVE) {
+      clearInterval(interval);
+      return;
+    }
+    if (runRobotStep() == "eated")
+      dirty = true;
+  }, 200);
 
-    var path = runRobotLife(500);
+  var pathCtx = $path[0].getContext("2d");
+  var lastI = -1;
+  requestAnimFrame(function loop () {
+    requestAnimFrame(loop);
+    if (lastI != i) {
+      lastI = i;
+      renderRobot(pathCtx, robot);
+      $step.text(i);
+    }
+  }, $path[0]);
 
-    var pathCtx = $path[0].getContext("2d");
-    drawRobotLife(pathCtx, path);
-
-    dirty = true;
-  //}, 500);
 
 
 
