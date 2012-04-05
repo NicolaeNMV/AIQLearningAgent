@@ -12,6 +12,9 @@ $(function(){
 
   // CONSTANTS
   
+
+  // reward object values must be normalized in a [-100, 100] range
+
   var GOODS = [
     { className: "jewel", value: 15 },
     { className: "paradise", value: 12 },
@@ -21,7 +24,7 @@ $(function(){
   var BADS = [
     { className: "deamon",    value: -50 },
     { className: "hellfire",  value: -10 },
-    { className: "veryangry", value: -10 }
+    { className: "veryangry", value: -90 }
   ];
   
   var ACTIONS = [
@@ -41,18 +44,18 @@ $(function(){
   // STATES
   var objects = [];
 
-  for (var i = 0; i < NB_GOODS; ++ i) {
+  function putObject (O) {
     var x = Math.floor(Math.random()*WIDTH);
     var y = Math.floor(Math.random()*HEIGHT);
-    var O = GOODS[i%GOODS.length];
-    objects.push( $.extend({}, O, { x: x, y: y, value: Math.round(O.value*(1+Math.random()*0.2)) }) );
+    objects.push( $.extend({}, O, { x: x, y: y, value: Math.floor(O.value*(0.8+0.1*Math.random())) }) );
+  }
+
+  for (var i = 0; i < NB_GOODS; ++ i) {
+    putObject(GOODS[i%GOODS.length]);
   }
   
   for (var i = 0; i < NB_BADS; ++ i) {
-    var x = Math.floor(Math.random()*WIDTH);
-    var y = Math.floor(Math.random()*HEIGHT);
-    var O = BADS[i%BADS.length];
-    objects.push( $.extend({}, O, { x: x, y: y, value: Math.round(O.value*(1+Math.random()*0.2)) }) );
+    putObject(BADS[i%BADS.length]);
   }
 
   function finished () {
@@ -89,6 +92,7 @@ $(function(){
     applyForEachActionState(function(){ 
       return Math.random()*0.3; 
     });
+    /*
     objects.forEach(function (o) {
       for (var a = 0; a < ACTIONS.length; ++a) {
         var adj = move(o, a);
@@ -98,6 +102,7 @@ $(function(){
         setActionState(o.x, o.y, a, o.value);
       }
     });
+    */
   }
 
   var states = [];
@@ -179,24 +184,39 @@ $(function(){
     return bestA;
   }
 
-  window.bestAction = bestAction;
-  window.move = move;
-
-
-  function getReward (s, a, olds, olda) {
-
-    return 0;
-    // FIXME
-
-    var r = 0;
-
-    // init r with a value in [-2, 2] depending on the angle change (it's better to continue forward)
+  // get a reward with a value in [-1, 1] 
+  // depending on the angle change (it's better to continue forward)
+  function noReturnReward (a, olda) {
     var diff = (16+olda - a)%8;
     if (diff > 4)
       diff -= 8;
     diff = Math.abs(diff);
-    r = 2 - diff;
+    diff = (1 - diff/2);
+    return diff;
+  }
 
+  // get a reward with a value in [-1, 1] 
+  // depending on the distance of a wall
+  function noWallReward (s) {
+    if (s.x == 0 || s.y == 0 || s.x == WIDTH-1 || s.y == HEIGHT-1)
+      return -1;
+    if (s.x == 1 || s.y == 1 || s.x == WIDTH-2 || s.y == HEIGHT-2)
+      return 0;
+    return 1;
+  }
+
+  // coming from an object get a reward 
+  // depending on the object value
+  function objectsReward (olds) {
+    var item = findItem(olds.x, olds.y);
+    return !item ? 0 : item.value;
+  }
+
+  function getReward (s, a, olds, olda) {
+    var r = 0;
+    r += noReturnReward(a, olda);
+    r += objectsReward(olds);
+    r += noWallReward(s);
     return r;
   }
 
@@ -218,7 +238,7 @@ $(function(){
 
   function computeQL() {
     initActionState();
-    QL(50, 0.1, 0.9);
+    QL(50, 0.2, 0.99);
     dirty = true;
   }
   computeQL();
