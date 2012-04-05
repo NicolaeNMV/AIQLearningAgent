@@ -9,8 +9,8 @@ $(function(){
 
 
   // CONSTANTS
-  var DEAMON = { fillStyle: "rgb(255,0,100)", className: "deamon", value: -20 }
-  var JEWEL = { className: "jewel", value: 5, nb: 1, consumable: true }
+  var DEAMON = { fillStyle: "rgb(255,0,100)", className: "deamon", value: -10 }
+  var JEWEL = { className: "jewel", value: 5, consumable: true }
 
   var ACTIONS = [
     { x: -1, y:  0 }, // left
@@ -72,9 +72,7 @@ $(function(){
         setActionState(o.x, o.y, a, o.value);
       }
     });
-
   }
-
 
   var states = [];
   // init states
@@ -154,6 +152,9 @@ $(function(){
 
 
   function getReward (s, a, olds, olda) {
+    return 0;
+    // FIXME
+
     var r = 0;
 
     // init r with a value in [-2, 2] depending on the angle change (it's better to continue forward)
@@ -244,15 +245,15 @@ $(function(){
       var initialPosition = { x: myPos.x, y: myPos.y };
       var itemEated = [];
       while(objects.length && --maxI) {
-        var actionMax = bestAction(myPos);
-        myPos = move(myPos,actionMax);
-        path.push({ x: myPos.x, y: myPos.y });
         var item = findItem(myPos.x, myPos.y);
         if (item != null) {
           removeItem(item);
           itemEated.push({ x: myPos.x, y: myPos.y });
           computeQL();
         }
+        var actionMax = bestAction(myPos);
+        myPos = move(myPos,actionMax);
+        path.push({ x: myPos.x, y: myPos.y });
       }
       return { 
         initialPosition: initialPosition, 
@@ -317,15 +318,18 @@ $(function(){
     render();
   }, canvas);
 
-
-  var path = runRobotLife(100);
-
-  console.log(path);
-
-  var pathCtx = $path[0].getContext("2d");
-  drawRobotLife(pathCtx, path);
-
   dirty = true;
+
+  //setTimeout(function() {
+
+    var path = runRobotLife(500);
+
+    var pathCtx = $path[0].getContext("2d");
+    drawRobotLife(pathCtx, path);
+
+    dirty = true;
+  //}, 500);
+
 
 
 });
