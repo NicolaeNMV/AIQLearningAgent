@@ -52,12 +52,12 @@
       <label class="prefix" for="gamma">γ</label> <input type="text" class="small" value="0.95" id="gamma" />
       </div>
       <div>
-        <button id="start">start new world</button>
+        <button id="start">start Q-learning</button>
       </div>
     </aside>
 
     <section>
-      <div id="experiment">
+      <div id="experiment" style="width: 600px; height: 400px;">
         <canvas id="path" width="600" height="400"></canvas>
         <canvas id="viewport" width="600" height="400"></canvas>
         <div id="objects"></div>
@@ -65,7 +65,7 @@
     </section>
 
     <div id="stats">
-      pas n°<span class="step"></span>
+      move n°<span class="step">0</span>
     </div>
 
     <footer>

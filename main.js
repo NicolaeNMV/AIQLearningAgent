@@ -4,8 +4,7 @@ $(function(){
   var canvas = $canvas[0];
   var $step = $('#stats .step');
 
-  var MAX_MOVE = 1000;
-
+  var world;
 
   // dirty variables used for rendering
   var running = false;
@@ -16,11 +15,6 @@ $(function(){
   var animationDuration = 100;
 
   var states;
-  // init states
-
-  /// UTILS
-  // newValue = f (x, y, action, currentValue)
-  // is called for each state
 
   function forEachState (f) {
     if (!states) return;
@@ -31,8 +25,6 @@ $(function(){
       }
     }
   }
-
-  // COMPUTING
 
   function computeStateFromActionState (as) {
     states = new Float32Array(world.width*world.height);
@@ -190,7 +182,7 @@ $(function(){
     var i = 0;
 
     function loop () {
-      if (world.finished() || i > MAX_MOVE) {
+      if (world.finished() || i > 1000) {
         robotDirty = true;
         dirty = true;
         setTimeout(function() {
@@ -221,14 +213,11 @@ $(function(){
     }
   }).change();
 
-  var $start = $("#start");
-  $start.click(function () {
-    var width = parseInt($("#width").val());
-    var height = parseInt($("#height").val());
-    var n = parseInt($("#n").val());
-    var alpha = parseFloat($("#alpha").val());
-    var gamma = parseFloat($("#gamma").val());
-    world = new World(30, 20);
+  var n, alpha, gamma, width, height;
+
+  function init () {
+    if (!width || !height) return;
+    world = new World(width, height);
     world.generateRandomItems(6, 4);
     var $objects = $('#objects').empty();
     world.objects.forEach(function (o) {
@@ -241,10 +230,54 @@ $(function(){
       o.node = node;
       $objects.append(node);
     });
+  }
+
+  function updateWidth () {
+    var w = parseInt($("#width").val());
+    if (w !== width) {
+      width = w;
+      init();
+    }
+  }
+  function updateHeight () {
+    var h = parseInt($("#height").val());
+    if (h !== height) {
+      height = h;
+      init();
+    }
+  }
+  function updateN () {
+    n = parseInt($("#n").val());
+  }
+  function updateAlpha () {
+    alpha = parseFloat($("#alpha").val());
+  }
+  function updateGamma () {
+    gamma = parseFloat($("#gamma").val());
+  }
+
+  var ev = "keyup blur";
+  $("#width").bind(ev, updateWidth);
+  $("#height").bind(ev, updateHeight);
+  $("#n").bind(ev, updateN);
+  $("#alpha").bind(ev, updateAlpha);
+  $("#gamma").bind(ev, updateGamma);
+
+  updateWidth();
+  updateHeight();
+  updateN();
+  updateAlpha();
+  updateGamma();
+  init();
+
+  var $start = $("#start");
+  $start.removeAttr("disabled");
+  $start.click(function () {
+    init();
     $start.attr("disabled", "disabled");
     run(function () {
       $start.removeAttr("disabled");
     }, n, alpha, gamma);
-  }).click();
+  });
 
 });

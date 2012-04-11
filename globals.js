@@ -96,7 +96,7 @@ function World (width, height) {
       onDone(self.actionsStates);
     }
     ww.postMessage({
-      world: this.toObject(),
+      world: self.toObject(),
       n: n,
       alpha: alpha,
       gamma: gamma
@@ -222,6 +222,10 @@ function World (width, height) {
         return false;
     }
     return true;
+  }
+
+  self.clone = function () {
+    return World.fromObject(self.toObject);
   }
 
   self.toObject = function () {
