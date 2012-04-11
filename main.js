@@ -148,7 +148,7 @@ $(function(){
   }, $path[0]);
 
 
-  function runRobotStep(onDone) {
+  function runRobotStep(onDone, n, alpha, gamma) {
     function end () {
       var actionMax = world.bestAction(robot.position);
       world.move(robot.position, actionMax, robot.position);
@@ -168,7 +168,7 @@ $(function(){
         computeStateFromActionState(as);
         dirty = true;
         end();
-      }, world.width+world.height, 0.5, 0.95);
+      }, n, alpha, gamma);
     }
     else {
       end();
@@ -176,7 +176,7 @@ $(function(){
   }
 
 
-  function run (onEnd) {
+  function run (onEnd, n, alpha, gamma) {
     robot = {
       position: {},
       initialPosition: { x: Math.floor(Math.random()*world.width/2 + world.width/4), 
@@ -200,7 +200,7 @@ $(function(){
       }
       $step.text(i);
       ++ i;
-      runRobotStep(loop);
+      runRobotStep(loop, n, alpha, gamma);
     }
 
     running = true;
@@ -208,7 +208,7 @@ $(function(){
       computeStateFromActionState(as);
       dirty = true;
       loop();
-    }, world.width+world.height, 0.5, 0.95);
+    }, n, alpha, gamma);
   }
 
   var $enableAnimation = $('#enableAnimation');
@@ -223,6 +223,11 @@ $(function(){
 
   var $start = $("#start");
   $start.click(function () {
+    var width = parseInt($("#width").val());
+    var height = parseInt($("#height").val());
+    var n = parseInt($("#n").val());
+    var alpha = parseFloat($("#alpha").val());
+    var gamma = parseFloat($("#gamma").val());
     world = new World(30, 20);
     world.generateRandomItems(6, 4);
     var $objects = $('#objects').empty();
@@ -239,7 +244,7 @@ $(function(){
     $start.attr("disabled", "disabled");
     run(function () {
       $start.removeAttr("disabled");
-    });
-  });
+    }, n, alpha, gamma);
+  }).click();
 
 });

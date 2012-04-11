@@ -4,6 +4,7 @@
 	<meta charset="UTF-8">
 	<title>Q-Learning</title>
   <link rel="stylesheet" href="main.css" />
+  <link href='http://fonts.googleapis.com/css?family=Lilita+One' rel='stylesheet' type='text/css'>  
   <script type="text/javascript" src="jquery.min.js"></script>
   <script type="text/javascript" src="requestAnimFrame.js"></script>
   <script type="text/javascript" src="globals.js"></script>
@@ -12,26 +13,64 @@
 <body>
   <div id="wrapper">
     <header>
+      <div style="float: right">
+        <img src="formula.png" alt="" />
+      </div>
       <h1>Q-Learning</h1>
     </header>
 
-    <div id="buttons">
-      <input type="checkbox" id="enableQL" name="enableQL" checked="checked" />
-      <label for="enableQL">visualize QL</label>
-      <input type="checkbox" id="enableAnimation" name="enableAnimation" />
-      <label for="enableAnimation">animation</label>
-      <button id="start">start new world</button>
-    </div>
+    <div style="clear: both"></div>
 
-    <div id="experiment">
-      <canvas id="path" width="600" height="400"></canvas>
-      <canvas id="viewport" width="600" height="400"></canvas>
-      <div id="objects"></div>
-    </div>
+    <aside>
+
+      <div>
+        <blockquote>
+        Q-learning is a reinforcement learning technique that works by learning an action-value function that gives the expected utility of taking a given action in a given state and following a fixed policy thereafter.
+        </blockquote>
+      </div>
+
+      <br />
+      
+
+      <div>
+        <input type="checkbox" id="enableQL" name="enableQL" checked="checked" />
+        <label for="enableQL">visualize QL</label>
+        <input type="checkbox" id="enableAnimation" name="enableAnimation" />
+        <label for="enableAnimation">animation</label>
+      </div>
+
+      <div>
+        <label class="prefix" for="width">width</label> <input type="text" class="small" value="30" id="width" />
+
+      <label class="prefix" for="height">height</label> <input type="text" class="small" value="20" id="height" />
+      </div>
+      <div>
+      <label class="prefix" for="n">nb</label> <input type="text" class="small" value="50" id="n" />
+      </div>
+      <div>
+      <label class="prefix" for="alpha">α</label> <input type="text" class="small" value="0.5" id="alpha" />
+      <label class="prefix" for="gamma">γ</label> <input type="text" class="small" value="0.95" id="gamma" />
+      </div>
+      <div>
+        <button id="start">start new world</button>
+      </div>
+    </aside>
+
+    <section>
+      <div id="experiment">
+        <canvas id="path" width="600" height="400"></canvas>
+        <canvas id="viewport" width="600" height="400"></canvas>
+        <div id="objects"></div>
+      </div>
+    </section>
 
     <div id="stats">
       pas n°<span class="step"></span>
     </div>
+
+    <footer>
+      a <a href="http://en.wikipedia.org/wiki/Q-learning">Q-learning</a> experiment - by <a href="http://twitter.com/greweb">@greweb</a> and <a href="http://twitter.com/AdrenalinTheOne">@AdrenalinTheOne</a>
+    </footer>
 
   </div>
 </body>
