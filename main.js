@@ -13,7 +13,7 @@ $(function(){
   var robotDirty = true;
 
   var animated = false;
-  var animationDuration = 200;
+  var animationDuration = 100;
 
   var states;
   // init states
