@@ -12,7 +12,7 @@ $(function(){
   var robotDirty = true;
 
   var animated = false;
-  var animationDuration = 100;
+  var animationDuration;
 
   var states;
 
@@ -216,7 +216,15 @@ $(function(){
   var n, alpha, gamma, width, height;
 
   function init () {
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    updateWidth();
+    updateHeight();
+    updateN();
+    updateAlpha();
+    updateGamma();
     if (!width || !height) return;
+    animationDuration = 5000 / Math.sqrt( width * width + height * height );
+
     world = new World(width, height);
     world.generateRandomItems(6, 4);
     var $objects = $('#objects').empty();
@@ -233,6 +241,7 @@ $(function(){
   }
 
   function updateWidth () {
+    if (running) return;
     var w = parseInt($("#width").val());
     if (w !== width) {
       width = w;
@@ -240,6 +249,7 @@ $(function(){
     }
   }
   function updateHeight () {
+    if (running) return;
     var h = parseInt($("#height").val());
     if (h !== height) {
       height = h;
@@ -247,12 +257,15 @@ $(function(){
     }
   }
   function updateN () {
+    if (running) return;
     n = parseInt($("#n").val());
   }
   function updateAlpha () {
+    if (running) return;
     alpha = parseFloat($("#alpha").val());
   }
   function updateGamma () {
+    if (running) return;
     gamma = parseFloat($("#gamma").val());
   }
 
@@ -263,11 +276,6 @@ $(function(){
   $("#alpha").bind(ev, updateAlpha);
   $("#gamma").bind(ev, updateGamma);
 
-  updateWidth();
-  updateHeight();
-  updateN();
-  updateAlpha();
-  updateGamma();
   init();
 
   var $start = $("#start");

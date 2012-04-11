@@ -173,8 +173,8 @@ function World (width, height) {
     r += self.objectsReward(olds);
     r += self.noWallReward(s);
 
-    if (!self.actionIsDiag(olda)) {
-      r *= SQRT_2;
+    if (self.actionIsDiag(olda)) {
+      r /= SQRT_2;
     }
 
     return r;
