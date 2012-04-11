@@ -277,13 +277,15 @@ $(function(){
   $("#gamma").bind(ev, updateGamma);
 
   init();
+  var first = true;
 
   var $start = $("#start");
   $start.removeAttr("disabled");
   $start.click(function () {
-    init();
+    !first && init();
     $start.attr("disabled", "disabled");
     run(function () {
+      first = false;
       $start.removeAttr("disabled");
     }, n, alpha, gamma);
   });
