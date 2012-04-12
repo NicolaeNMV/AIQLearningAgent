@@ -493,6 +493,10 @@ function Robot (world, animated) {
   self.animated = animated;
   self.animationDuration = 8000 / Math.sqrt( world.width * world.width + world.height * world.height );
 
+  self.setAnimated = function (b) {
+    self.animated = b;
+  }
+
   function run (onEnd, n, alpha, gamma) {
     var x = Math.floor(Math.random()*world.width/2 + world.width/4);
     var y = Math.floor(Math.random()*world.height/2 + world.height/4);

@@ -23,12 +23,7 @@ $(function(){
   }).change();
 
   $enableAnimation.on("change", function() {
-    if($(this).is(":checked")) {
-      if (robotRenderer) robotRenderer.animated = true;
-    }
-    else {
-      if (robotRenderer) robotRenderer.animated = false;
-    }
+    robot && robot.setAnimated( $(this).is(":checked") );
   }).change();
 
   function init () {
