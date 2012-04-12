@@ -42,8 +42,6 @@ if ( ! self.Int32Array ) {
 	self.Float32Array = Array;
 }
 
-function Qlearning (states, actions, getReward) { } // TODO 
-
 function World (width, height) {
   var self = this;
   self.objects = [];

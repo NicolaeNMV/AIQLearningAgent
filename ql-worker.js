@@ -1,6 +1,6 @@
 // This code must be launched by a Web Worker
 
-importScripts("globals.js");
+importScripts("experiment.js"); // FIXME : will be ql.js
 
 onmessage = function (e) {
   var data = e.data;
