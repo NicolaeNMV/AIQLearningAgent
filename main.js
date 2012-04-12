@@ -14,20 +14,21 @@ $(function(){
   var animated = false;
   var animationDuration;
 
-  var states;
-
   function forEachState (f) {
     if (!states) return;
     for (var y = 0; y < world.height; ++ y) {
       for (var x = 0; x < world.width; ++ x) {
         var i = y*world.width + x;
-        f(x, y, states[i]);
+        f(x, y, states[i], bestActionForStates[i]);
       }
     }
   }
 
+  var states;
+  var bestActionForStates;
   function computeStateFromActionState (as) {
     states = new Float32Array(world.width*world.height);
+    bestActionForStates = new Int32Array(world.width*world.height);
     for (var y = 0; y < world.height; ++ y) {
       for (var x = 0; x < world.width; ++ x) {
         var sum = 0;
@@ -37,6 +38,7 @@ $(function(){
           sum += as[i];
         }
         states[s] = sum / world.actions.length;
+        bestActionForStates[s] = world.bestAction( { x: x, y: y } );
       }
     }
   }
@@ -117,11 +119,26 @@ $(function(){
       if (v>max) max = v;
     });
 
-    forEachState(function (x, y, v) {
+    ctx.strokeStyle = "rgba(0,0,0,0.2)";
+    ctx.lineWidth = 0.1;
+
+    forEachState(function (x, y, v, a) {
       var p = smoothstep(min, max, v);
       var r = Math.floor((1-p)*255), g = Math.floor(p*255), b = 0;
+      ctx.save();
+      ctx.translate(x+0.5, y+0.5);
       ctx.fillStyle = "rgb("+[r,g,b]+")";
-      ctx.fillRect(x, y, 1, 1);
+      ctx.fillRect(-0.5, -0.5, 1, 1);
+      ctx.rotate(a*Math.PI/4);
+      ctx.beginPath();
+      ctx.moveTo(0.3, 0);
+      ctx.lineTo(-0.3, 0);
+      ctx.lineTo(0, 0.3);
+
+      ctx.moveTo(-0.3, 0);
+      ctx.lineTo(0, -0.3);
+      ctx.stroke();
+      ctx.restore();
     });
     ctx.restore();
   }
@@ -223,7 +240,7 @@ $(function(){
     updateAlpha();
     updateGamma();
     if (!width || !height) return;
-    animationDuration = 5000 / Math.sqrt( width * width + height * height );
+    animationDuration = 8000 / Math.sqrt( width * width + height * height );
 
     world = new World(width, height);
     world.generateRandomItems(6, 4);
