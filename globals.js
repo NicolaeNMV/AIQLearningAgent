@@ -1,3 +1,5 @@
+// Some constants
+
 var ACTIONS = [
   { x: -1, y:  0 }, // left
   { x: -1, y: -1 }, // top left
@@ -22,6 +24,12 @@ var BADS = [
   { className: "hellfire",  value: -10 },
   { className: "veryangry", value: -90 }
 ];
+
+// Some utils...
+
+function constraint (min, max, value) { return Math.max(min, Math.min(max, value)) }
+
+function smoothstep (min, max, value) { return Math.max(0, Math.min(1, (value-min)/(max-min))); }
 
 var makeEvent = function (_){return {
   pub:function (a,b,c,d){for(d=-1,c=[].concat(_[a]);c[++d];)c[d](b)},
@@ -275,8 +283,6 @@ World.fromObject = function (o) {
   return w;
 }
 
-function constraint (min, max, value) { return Math.max(min, Math.min(max, value)) }
-function smoothstep (min, max, value) { return Math.max(0, Math.min(1, (value-min)/(max-min))); }
 
 function WorldRenderer (world, canvas) {
   var ctx = canvas.getContext("2d");
