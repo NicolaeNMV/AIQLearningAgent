@@ -22,14 +22,23 @@ var BADS = [
   { className: "veryangry", value: -90 }
 ];
 
+var makeEvent = function (_){return {
+  pub:function (a,b,c,d){for(d=-1,c=[].concat(_[a]);c[++d];)c[d](b)},
+  sub:function (a,b){(_[a]||(_[a]=[])).push(b)},
+  del:function (a,b){if(_[a]){var i = $.indexOf(_[a], b);i>=0 && _[a].splice(i, 1);}}
+}}
+
 if ( ! self.Int32Array ) {
 	self.Int32Array = Array;
 	self.Float32Array = Array;
 }
 
+function Qlearning (states, actions, getReward) { } // TODO 
+
 function World (width, height) {
   var self = this;
   self.objects = [];
+  self.E = makeEvent({});
 
   self.width = width;
   self.height = height;
@@ -89,7 +98,7 @@ function World (width, height) {
   }
 
   self.computeQL_inWorker = function (onDone, n, alpha, gamma) {
-    var ww = new Worker("qlearning.js");
+    var ww = new Worker("ql-worker.js");
     ww.onmessage = function (e) {
       var data = e.data;
       self.actionsStates = data;
@@ -109,6 +118,7 @@ function World (width, height) {
       self.computeQL_inWorker.apply(this, arguments);
     else
       self.computeQL_here.apply(this, arguments);
+    self.E.pub("computed", self.actionsStates);
   }
 
   self.bestAction = function (s) {
@@ -256,3 +266,263 @@ World.fromObject = function (o) {
 function constraint (min, max, value) { return Math.max(min, Math.min(max, value)) }
 function smoothstep (min, max, value) { return Math.max(0, Math.min(1, (value-min)/(max-min))); }
 
+
+function WorldRenderer (world, canvas) {
+  var ctx = canvas.getContext("2d");
+  var self = this;
+  var dirty = true;
+
+  var states;
+  var bestActionForStates;
+
+  world.E.sub("computed", computeStateFromActionState);
+
+  function forEachState (f) {
+    if (!states) return;
+    for (var y = 0; y < world.height; ++ y) {
+      for (var x = 0; x < world.width; ++ x) {
+        var i = y*world.width + x;
+        f(x, y, states[i], bestActionForStates[i]);
+      }
+    }
+  }
+
+  function computeStateFromActionState (as) {
+    states = new Float32Array(world.width*world.height);
+    bestActionForStates = new Int32Array(world.width*world.height);
+    for (var y = 0; y < world.height; ++ y) {
+      for (var x = 0; x < world.width; ++ x) {
+        var sum = 0;
+        var s = x + y*world.width;
+        for (var a = 0; a < world.actions.length; ++ a) {
+          var i = a+world.actions.length*s;
+          sum += as[i];
+        }
+        states[s] = sum / world.actions.length;
+        bestActionForStates[s] = world.bestAction( { x: x, y: y } );
+      }
+    }
+    dirty = true;
+  }
+
+  self.computeStateFromActionState = computeStateFromActionState;
+
+  self.render = render;
+
+  var renderingStop = false;
+  function startRendering () {
+    renderingStop = false;
+    requestAnimFrame(function loop () {
+      if (renderingStop) {
+        renderingStop = false;
+      }
+      else {
+        requestAnimFrame(loop);
+      }
+      render();
+    }, canvas);
+  }
+
+  function stopRendering () {
+    renderingStop = true;
+  }
+
+  function render () {
+    if (!dirty) return;
+    dirty = false;
+
+    ctx.save();
+    ctx.scale(canvas.width/world.width, canvas.height/world.height);
+
+    var min=+Infinity, max=-Infinity;
+    forEachState(function(_, __, v) {
+      if (v<min) min = v;
+      if (v>max) max = v;
+    });
+
+    if (min !== max) {
+      ctx.strokeStyle = "rgba(0,0,0,0.2)";
+      ctx.lineWidth = 0.1;
+
+      forEachState(function (x, y, v, a) {
+        var p = smoothstep(min, max, v);
+        var r = Math.floor((1-p)*255), g = Math.floor(p*255), b = 0;
+        ctx.save();
+        ctx.translate(x+0.5, y+0.5);
+        ctx.fillStyle = "rgb("+[r,g,b]+")";
+        ctx.fillRect(-0.5, -0.5, 1, 1);
+        ctx.rotate(a*Math.PI/4);
+        ctx.beginPath();
+        ctx.moveTo(0.3, 0);
+        ctx.lineTo(-0.3, 0);
+        ctx.lineTo(0, 0.3);
+
+        ctx.moveTo(-0.3, 0);
+        ctx.lineTo(0, -0.3);
+        ctx.stroke();
+        ctx.restore();
+      });
+    }
+
+    ctx.restore();
+  }
+
+  self.clean = function () {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  self.startRendering = startRendering;
+  self.stopRendering = stopRendering;
+}
+
+
+function ObjectsRenderer (world, container) {
+  var $objects = $(container).empty();
+  world.objects.forEach(function (o) {
+    var node = $('<div class="object" />').
+      addClass(o.className).
+      css("top", $objects.height()*((o.y+0.5)/world.height)+'px').
+      css("left", $objects.width()*((o.x+0.5)/world.width)+'px').
+      append('<span class="image" />').
+      append($('<span class="weight" />').text(o.value));
+    o.node = node;
+    $objects.append(node);
+  });
+}
+
+
+function RobotRenderer () {} // TODO
+
+function Robot (world, canvas, animated) {
+  var self = this;
+  self.E = makeEvent({});
+
+  var ctx = canvas.getContext("2d");
+
+  var robot;
+  var dirty;
+
+  self.animated = animated;
+  self.animationDuration = 8000 / Math.sqrt( world.width * world.width + world.height * world.height );
+
+  function getCanvasPosition (p) {
+    return {
+      x: (p.x+0.5)*canvas.width/world.width,
+        y: (p.y+0.5)*canvas.height/world.height
+    }
+  }
+
+  function render () {
+    if (!dirty) return;
+    dirty = false;
+    ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+    var p;
+    ctx.strokeStyle="black";
+    ctx.lineWidth = 1;
+    ctx.fillStyle="black";
+    ctx.beginPath();
+    p = getCanvasPosition(robot.position);
+    ctx.arc(p.x, p.y, 4, 0, 2*Math.PI);
+    ctx.fill();
+    p = getCanvasPosition(robot.initialPosition);
+    ctx.arc(p.x, p.y, 2, 0, 2*Math.PI);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+    for (var i = 0; i < robot.path.length; ++i) {
+      var p = getCanvasPosition(robot.path[i]);
+      ctx.lineTo(p.x, p.y);
+    }
+    ctx.stroke();
+    for (var i = 0; i < robot.eated.length; ++i) {
+      var p = getCanvasPosition(robot.eated[i]);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 2, 0, 2*Math.PI);
+      ctx.fill();
+    }
+  }
+
+  var renderingStop = false;
+  function startRendering () {
+    renderingStop = false;
+    requestAnimFrame(function loop () {
+      if (renderingStop) {
+        renderingStop = false;
+      }
+      else {
+        requestAnimFrame(loop);
+      }
+      render();
+    }, canvas);
+  }
+
+  function stopRendering () {
+    renderingStop = true;
+  }
+
+  self.stopRendering = stopRendering;
+  self.startRendering = startRendering;
+
+  function run (onEnd, n, alpha, gamma) {
+    robot = {
+      position: {},
+      initialPosition: { x: Math.floor(Math.random()*world.width/2 + world.width/4), 
+        y: Math.floor(Math.random()*world.height/2 + world.height/4) },
+      path: [],
+      eated: []
+    };
+
+    robot.position.x = robot.initialPosition.x;
+    robot.position.y = robot.initialPosition.y;
+    var i = 0;
+
+    function loop () {
+      if (world.finished() || i > 1000) {
+        robotDirty = true;
+        dirty = true;
+        return onEnd && onEnd();
+      }
+
+      self.E.pub("step", i);
+      ++ i;
+      step(loop, n, alpha, gamma);
+    }
+
+    world.computeQL(function (as) {
+      loop();
+    }, n, alpha, gamma);
+  }
+
+  function step(onDone, n, alpha, gamma) {
+    function end () {
+      var actionMax = world.bestAction(robot.position);
+      world.move(robot.position, actionMax, robot.position);
+      robot.path.push({ x: robot.position.x, y: robot.position.y });
+      dirty = true;
+      if (self.animated) {
+        setTimeout(onDone, self.animationDuration);
+      }
+      else
+        onDone();
+    }
+    var item = world.findItem(robot.position.x, robot.position.y);
+    if (item != null) {
+      world.removeItem(item);
+      robot.eated.push({ x: robot.position.x, y: robot.position.y });
+      world.computeQL(function (as) {
+        end();
+      }, n, alpha, gamma);
+    }
+    else {
+      end();
+    }
+  }
+
+  self.clean = function () {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  self.run = run;
+  self.step = step;
+}
