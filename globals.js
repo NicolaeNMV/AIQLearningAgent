@@ -7,7 +7,7 @@ var ACTIONS = [
   { x:  1, y:  1 }, // down right
   { x:  0, y:  1 }, // down
   { x: -1, y:  1 }  // down left
-]
+];
  
   // reward object values must be normalized in a [-100, 100] range
 var GOODS = [
@@ -16,6 +16,7 @@ var GOODS = [
   { className: "pizza", value:30 },
   { className: "love", value: 50 }
 ];
+
 var BADS = [
   { className: "deamon",    value: -50 },
   { className: "hellfire",  value: -10 },
@@ -113,12 +114,23 @@ function World (width, height) {
   }
 
   self.computeQL = function (onDone, n, alpha, gamma) {
+    function done (as) {
+      self.E.pub("computed", as);
+      onDone.apply(this, arguments);
+    }
+    var args = [ done, n, alpha, gamma ];
     // Try to use web worker, fallback without
-    if (!!window.Worker)
-      self.computeQL_inWorker.apply(this, arguments);
+    if (!!window.Worker) {
+      try {
+        self.computeQL_inWorker.apply(this, args);
+      }
+      catch (e) {
+        self.computeQL_here.apply(this, args);
+        window['console'] && console.warn("Worker didn't work: ", e);
+      }
+    }
     else
-      self.computeQL_here.apply(this, arguments);
-    self.E.pub("computed", self.actionsStates);
+      self.computeQL_here.apply(this, args);
   }
 
   self.bestAction = function (s) {
@@ -266,7 +278,6 @@ World.fromObject = function (o) {
 function constraint (min, max, value) { return Math.max(min, Math.min(max, value)) }
 function smoothstep (min, max, value) { return Math.max(0, Math.min(1, (value-min)/(max-min))); }
 
-
 function WorldRenderer (world, canvas) {
   var ctx = canvas.getContext("2d");
   var self = this;
@@ -325,6 +336,8 @@ function WorldRenderer (world, canvas) {
 
   function stopRendering () {
     renderingStop = true;
+    dirty = true;
+    render();
   }
 
   function render () {
@@ -390,25 +403,20 @@ function ObjectsRenderer (world, container) {
   });
 }
 
-
-function RobotRenderer () {} // TODO
-
-function Robot (world, canvas, animated) {
+function RobotRenderer (robot, canvas) {
   var self = this;
-  self.E = makeEvent({});
-
   var ctx = canvas.getContext("2d");
-
-  var robot;
   var dirty;
+  var world = robot.world;
 
-  self.animated = animated;
-  self.animationDuration = 8000 / Math.sqrt( world.width * world.width + world.height * world.height );
+  robot.E.sub("moved", function () {
+    dirty = true;
+  });
 
   function getCanvasPosition (p) {
     return {
       x: (p.x+0.5)*canvas.width/world.width,
-        y: (p.y+0.5)*canvas.height/world.height
+      y: (p.y+0.5)*canvas.height/world.height
     }
   }
 
@@ -459,28 +467,37 @@ function Robot (world, canvas, animated) {
 
   function stopRendering () {
     renderingStop = true;
+    dirty = true;
+    render();
+  }
+
+  self.clean = function () {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
 
   self.stopRendering = stopRendering;
   self.startRendering = startRendering;
+}
+
+function Robot (world, animated) {
+  var self = this;
+  self.E = makeEvent({});
+
+  self.world = world;
+  self.animated = animated;
+  self.animationDuration = 8000 / Math.sqrt( world.width * world.width + world.height * world.height );
 
   function run (onEnd, n, alpha, gamma) {
-    robot = {
-      position: {},
-      initialPosition: { x: Math.floor(Math.random()*world.width/2 + world.width/4), 
-        y: Math.floor(Math.random()*world.height/2 + world.height/4) },
-      path: [],
-      eated: []
-    };
-
-    robot.position.x = robot.initialPosition.x;
-    robot.position.y = robot.initialPosition.y;
+    var x = Math.floor(Math.random()*world.width/2 + world.width/4);
+    var y = Math.floor(Math.random()*world.height/2 + world.height/4);
+    self.position = { x: x, y: y };
+    self.initialPosition = { x: x, y: y };
+    self.path = [];
+    self.eated = [];
     var i = 0;
 
     function loop () {
       if (world.finished() || i > 1000) {
-        robotDirty = true;
-        dirty = true;
         return onEnd && onEnd();
       }
 
@@ -496,20 +513,20 @@ function Robot (world, canvas, animated) {
 
   function step(onDone, n, alpha, gamma) {
     function end () {
-      var actionMax = world.bestAction(robot.position);
-      world.move(robot.position, actionMax, robot.position);
-      robot.path.push({ x: robot.position.x, y: robot.position.y });
-      dirty = true;
+      var actionMax = world.bestAction(self.position);
+      world.move(self.position, actionMax, self.position);
+      self.path.push({ x: self.position.x, y: self.position.y });
+      self.E.pub("moved");
       if (self.animated) {
         setTimeout(onDone, self.animationDuration);
       }
       else
         onDone();
     }
-    var item = world.findItem(robot.position.x, robot.position.y);
+    var item = world.findItem(self.position.x, self.position.y);
     if (item != null) {
       world.removeItem(item);
-      robot.eated.push({ x: robot.position.x, y: robot.position.y });
+      self.eated.push({ x: self.position.x, y: self.position.y });
       world.computeQL(function (as) {
         end();
       }, n, alpha, gamma);
@@ -517,10 +534,6 @@ function Robot (world, canvas, animated) {
     else {
       end();
     }
-  }
-
-  self.clean = function () {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
 
   self.run = run;

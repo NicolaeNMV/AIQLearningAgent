@@ -4,22 +4,13 @@ $(function(){
   var $step = $('#stats .step');
   var $objects = $('#objects');
   var $enableAnimation = $('#enableAnimation');
-
-  $enableAnimation.on("change", function() {
-    if($(this).is(":checked")) {
-      if (robot) robot.animated = true;
-    }
-    else {
-      if (robot) robot.animated = false;
-    }
-  }).change();
+  var $enableQL = $('#enableQL');
 
   var n, alpha, gamma, width, height;
 
   var running;
-  var world, worldRenderer, objectsRenderer, robot;
+  var world, worldRenderer, objectsRenderer, robot, robotRenderer;
 
-  var $enableQL = $('#enableQL');
   $enableQL.on("change", function() {
     if($(this).is(":checked")) {
       $canvas.removeClass('disabled');
@@ -31,8 +22,17 @@ $(function(){
     }
   }).change();
 
+  $enableAnimation.on("change", function() {
+    if($(this).is(":checked")) {
+      if (robotRenderer) robotRenderer.animated = true;
+    }
+    else {
+      if (robotRenderer) robotRenderer.animated = false;
+    }
+  }).change();
+
   function init () {
-    robot && robot.clean();
+    robotRenderer && robotRenderer.clean();
     worldRenderer && worldRenderer.clean();
     updateWidth();
     updateHeight();
@@ -45,7 +45,8 @@ $(function(){
     world.generateRandomItems(6, 4);
     worldRenderer = new WorldRenderer(world, $canvas[0]);
     objectsRenderer = new ObjectsRenderer(world, $objects);
-    robot = new Robot(world, $path[0], $enableAnimation.is(':checked'));
+    robot = new Robot(world, $enableAnimation.is(':checked'));
+    robotRenderer = new RobotRenderer(robot, $path[0]);
   }
 
   function updateWidth () {
@@ -103,7 +104,7 @@ $(function(){
     running = true;
     !first && init();
     $start.attr("disabled", "disabled");
-    robot.startRendering();
+    robotRenderer.startRendering();
     robot.E.sub("step", function (i) {
       $step.text(i);
     });
@@ -112,7 +113,7 @@ $(function(){
       first = false;
       running = false;
       $start.removeAttr("disabled");
-      robot.stopRendering();
+      robotRenderer.stopRendering();
       worldRenderer.stopRendering();
     }, n, alpha, gamma);
   });
