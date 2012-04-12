@@ -1,0 +1,119 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Q-Learning</title>
+  <link rel="stylesheet" href="main.css" />
+  <link href='http://fonts.googleapis.com/css?family=Lilita+One' rel='stylesheet' type='text/css'>  
+  <script type="text/javascript" src="jquery.min.js"></script>
+  <script type="text/javascript" src="requestAnimFrame.js"></script>
+  <script type="text/javascript" src="ql.js"></script>
+  <script type="text/javascript" src="experiment.js"></script>
+</head>
+<body>
+  <div id="wrapper">
+    <header>
+      <div style="float: right">
+        <img src="formula.png" alt="" />
+      </div>
+      <h1>Q-Learning</h1>
+    </header>
+
+    <div style="clear: both"></div>
+
+    <aside>
+
+      <div>
+        <h2>
+          Courbe d'amélioration
+        </h2>
+      </div>
+
+    </aside>
+
+    <section>
+      <div id="experiment" style="width: 600px; height: 400px;">
+        <canvas id="viewport" width="600" height="400"></canvas>
+      </div>
+    </section>
+
+    <div id="stats">
+      <span id="iterations">0</span>/<span id="totalIterations"></span>
+      iterations
+    </div>
+
+    <footer>
+      a <a href="http://en.wikipedia.org/wiki/Q-learning">Q-learning</a> experiment - by <a href="http://twitter.com/greweb">@greweb</a> and <a href="http://twitter.com/AdrenalinTheOne">@AdrenalinTheOne</a>
+    </footer>
+
+  </div>
+
+  <script type="text/javascript">
+  $(function(){
+  var dirty = true;
+  var worldModel = new World(20, 20);
+  worldModel.generateOnlyGoodsWithSameWeight(3);
+
+  var iterations = [];
+  var results = [];
+  var nb = 0;
+  for (var i = 0; i <= 200; i += 5) {
+    iterations.push(i);
+  }
+
+  $('#totalIterations').text( iterations.length );
+
+  var alpha = 0.04;
+  var gamma = 0.95;
+  var maxstep = 50;
+  var POINT_SIZE = 2;
+
+  iterations.forEach(function (n, i) {
+    var world = worldModel.clone();
+    var robot = new Robot(world, false, maxstep);
+    robot.run(function (steps) {
+      results[i] = {
+        steps: steps
+      };
+      ++ nb;
+      $('#iterations').text( nb );
+      dirty = true;
+    }, n, alpha, gamma);
+  });
+
+  function render (ctx, canvas) {
+    if (!dirty) return;
+    dirty = false;
+    ctx.save();
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    var W = canvas.width;
+    var H = canvas.height;
+    ctx.fillStyle = "red";
+    iterations.forEach(function (n, i) {
+      var r = results[i];
+      if (r === undefined) return;
+      r = r.steps - 1;
+      var x, y;
+      x = W*(i+0.5)/(iterations.length+1);
+      y = H-H*(r)/maxstep;
+      ctx.beginPath();
+      ctx.arc(x, y, POINT_SIZE, 0, 2*Math.PI);
+      ctx.fill();
+    });
+    ctx.restore();
+  }
+
+  (function(){
+    var canvas = $('#viewport')[0];
+    var ctx = canvas.getContext("2d");
+    requestAnimFrame(function loop () {
+      requestAnimFrame(loop, canvas);
+      render(ctx, canvas);
+      }, canvas);
+  }());
+
+});
+  </script>
+</body>
+</html>

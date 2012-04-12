@@ -216,15 +216,19 @@ function World (width, height) {
     return null;
   }
 
-  self.putObject = function (O) {
+  self.putObject = function (O, sameWeight) {
     var x, y;
     var i = 10;
+    var value = O.value;
+    if (!sameWeight) {
+      value = Math.floor(value*(0.8+0.1*Math.random()));
+    }
     do {
       x = Math.floor((0.95*Math.random())*width);
       y = Math.floor((0.95*Math.random())*height);
     } while ( 0 <-- i && self.findItem(x, y) );
 
-    self.objects.push( $.extend({}, O, { x: x, y: y, value: Math.floor(O.value*(0.8+0.1*Math.random())) }) );
+    self.objects.push( $.extend({}, O, { x: x, y: y, value: value }) );
   }
 
   self.removeItem = function (o) {
@@ -233,6 +237,11 @@ function World (width, height) {
       self.objects.splice(i, 1);
     }
     o.node && o.node.addClass("eated");
+  }
+
+  self.generateOnlyGoodsWithSameWeight = function (nb) {
+    for (var i = 0; i < nb; ++ i)
+      self.putObject(GOODS[0], true);
   }
 
   self.generateRandomItems = function (nbGoods, nbBads) {
@@ -253,7 +262,7 @@ function World (width, height) {
   }
 
   self.clone = function () {
-    return World.fromObject(self.toObject);
+    return World.fromObject(self.toObject());
   }
 
   self.toObject = function () {
@@ -332,7 +341,7 @@ function WorldRenderer (world, canvas) {
         renderingStop = false;
       }
       else {
-        requestAnimFrame(loop);
+        requestAnimFrame(loop, canvas);
       }
       render();
     }, canvas);
@@ -463,7 +472,7 @@ function RobotRenderer (robot, canvas) {
         renderingStop = false;
       }
       else {
-        requestAnimFrame(loop);
+        requestAnimFrame(loop, canvas);
       }
       render();
     }, canvas);
@@ -483,9 +492,13 @@ function RobotRenderer (robot, canvas) {
   self.startRendering = startRendering;
 }
 
-function Robot (world, animated) {
+function Robot (world, animated, maxstep) {
   var self = this;
   self.E = makeEvent({});
+
+  self.i = 0;
+
+  self.maxstep = maxstep || 1000;
 
   self.world = world;
   self.animated = animated;
@@ -502,15 +515,15 @@ function Robot (world, animated) {
     self.initialPosition = { x: x, y: y };
     self.path = [];
     self.eated = [];
-    var i = 0;
+    self.i = 0;
 
     function loop () {
-      if (world.finished() || i > 1000) {
-        return onEnd && onEnd();
+      if (world.finished() || self.i > self.maxstep) {
+        return onEnd && onEnd(self.i);
       }
 
-      self.E.pub("step", i);
-      ++ i;
+      self.E.pub("step", self.i);
+      ++ self.i;
       step(loop, n, alpha, gamma);
     }
 
