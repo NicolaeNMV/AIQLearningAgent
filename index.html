@@ -31,14 +31,16 @@
       <section>
         <h2>Le problème</h2>
         Dans un espace 2D fini, on place différents objets à poids négatifs (bonus) et positifs (malus). 
-        Un robot placé ensuite doit se déplacer pour aller chercher les objets positifs et éviter les objets négatifs qui agissent comme des zones d'effet (terrain accidenté, ...).
+        Un robot doit se déplacer pour aller chercher les objets positifs et éviter les objets négatifs qui agissent comme des zones d'effet (terrain accidenté, ...).
+        <br />
         Le robot sait se déplacer suivant les huit directions cardinales.
-        Il est régi par une stratégie définie par une fonction de récompense.
+        <br />
+        Il suit une stratégie définie par une fonction de récompense.
       </section>
 
       <section>
-        <div id="initial" class="experiment" style="width: 500px; height: 200px;">
-          <canvas class="path" width="500" height="200"></canvas>
+        <div id="initial" class="experiment" style="width: 500px; height: 250px;">
+          <canvas class="path" width="500" height="250"></canvas>
           <div class="objects" style="width: 100%; height: 100%"></div>
         </div>
       </section>
@@ -49,7 +51,7 @@
   var $objects = $node.find('.objects');
   var $path = $node.find(".path");
 
-  var world = new World(20, 8);
+  var world = new World(20, 10);
   world.generateRandomItems(3, 2);
   var objectsRenderer = new ObjectsRenderer(world, $objects);
   var robot = new Robot(world, false);
@@ -174,8 +176,8 @@
         </p>
         <p>
           Pour chaque couple état-action, une valeur, initialement aléatoire, 
-          est mémorisé, amélioré et propagé en plusieurs itérations 
-          grâce à la fonction Q.
+          est mémorisée, améliorée et propagée par plusieurs itérations 
+          de la fonction Q.
         </p>
         <p>
           <img src="formula_small.png" alt="" style="width: 100%" />
@@ -200,7 +202,7 @@
           L'agent est capable de déterminer la récompense engendrée par une action en fonction de l'état dans lequel il se trouve.
         </p>
         <p>
-          Cette récompense correspond à la somme de sous-récompenses:
+          Cette récompense correspond à la somme des sous-récompenses:
           <ul>
             <li>
               <strong>Récompense de direction:</strong>
