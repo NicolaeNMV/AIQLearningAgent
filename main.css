@@ -84,6 +84,12 @@ hgroup {
 h1, h2, h3 {
   font-family: 'Lilita One';
 }
+h1 {
+  font-size: 4em;
+}
+h2 {
+  font-size: 2em;
+}
 canvas {
   image-rendering:optimizeSpeed;             /* Legal fallback                 */
   image-rendering:-moz-crisp-edges;          /* Firefox                        */
