@@ -5,7 +5,7 @@
 	<title>Q-Learning</title>
   <link rel="stylesheet" href="main.css" />
   <link href='http://fonts.googleapis.com/css?family=Lilita+One' rel='stylesheet' type='text/css'>  
-<link href='http://fonts.googleapis.com/css?family=Marmelad' rel='stylesheet' type='text/css'>
+  <link href='http://fonts.googleapis.com/css?family=Marmelad' rel='stylesheet' type='text/css'>
   
   <script type="text/javascript" src="jquery.min.js"></script>
   <script type="text/javascript" src="requestAnimFrame.js"></script>
@@ -429,6 +429,11 @@
       worldRenderer.stopRendering();
     }, n, alpha, gamma);
   });
+
+  if (location.hash=="#start") {
+    $start.click();
+  }
+
 }());
       </script>
     </article>

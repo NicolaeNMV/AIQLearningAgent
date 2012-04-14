@@ -9,6 +9,7 @@ html {
   color: white;
   font-family: 'Marmelad', sans-serif;  
 }
+
 footer {
   clear: both;
   text-align: center;
@@ -85,7 +86,7 @@ h1, h2, h3 {
   font-family: 'Lilita One';
 }
 h1 {
-  font-size: 4em;
+  font-size: 3.5em;
 }
 h2 {
   font-size: 2em;
