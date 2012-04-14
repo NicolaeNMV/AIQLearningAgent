@@ -1,0 +1,20 @@
+A Q-Learning experiment.
+
+Made with latest web technologies:
+ * HTML 5 & CSS 3
+ * Javascript
+ * Web Workers
+
+Hosted here: http://greweb.fr/qlearning/
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To make it working, start an http server:
+
+    python -m SimpleHTTPServer 8888
+
+and go to the page
+
+    http://localhost:8888/
+
+Target browsers: Chrome or Firefox 10+
