@@ -308,20 +308,11 @@
         <div class="stats" id="finalstats">
           déplacement n°<span class="step">0</span>
         </div>
+
       </section>
-    </article>
 
-    <footer>
-      <p class="selflink">
-        <a href="http://greweb.fr/qlearning">http://greweb.fr/qlearning</a>
-      </p>
-      a <a href="http://en.wikipedia.org/wiki/Q-learning">Q-learning</a> experiment - by <a href="http://twitter.com/greweb">@greweb</a> and <a href="http://twitter.com/AdrenalinTheOne">@AdrenalinTheOne</a>
-    </footer>
-
-  </div>
-
-  <script type="text/javascript">
-  $(function(){
+      <script type="text/javascript">
+  (function(){
   var $node = $('#final');
   var $canvas = $node.find('.viewport');
   var $path = $node.find('.path');
@@ -436,7 +427,17 @@
       worldRenderer.stopRendering();
     }, n, alpha, gamma);
   });
-});
-  </script>
+}());
+      </script>
+    </article>
+
+    <footer>
+      <p class="selflink">
+        <a href="http://greweb.fr/qlearning">http://greweb.fr/qlearning</a>
+      </p>
+      <a href="http://en.wikipedia.org/wiki/Q-learning">Q-learning</a> - par <a href="http://twitter.com/greweb">Gaëtan Renaudeau</a> et <a href="http://twitter.com/AdrenalinTheOne">Nicolae Namolovan</a>
+    </footer>
+
+  </div>
 </body>
 </html>
