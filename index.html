@@ -70,7 +70,7 @@
     	<section>
         <div class="conf">
           <label for="propagationAlpha" class="prefix">α</label>
-            <input id="propagationAlpha" type="number" value="0.5" min="0.0" max="1.0" step="0.01" />
+            <input id="propagationAlpha" class="small" type="number" value="0.5" min="0.0" max="1.0" step="0.01" />
             <button id="recomputePropagation" type="submit">OK</button>
         </div>
 
@@ -269,16 +269,22 @@
         </div>
 
         <div>
-          <label class="prefix" for="width">width</label> <input type="text" class="small" value="30" id="width" />
+          <label class="prefix" for="width">width</label> 
+          <input type="number" class="small" value="30" id="width" step="1" min="4" max="90" />
 
-          <label class="prefix" for="height">height</label> <input type="text" class="small" value="15" id="height" />
+          <label class="prefix" for="height">height</label> 
+          <input type="number" class="small" value="15" id="height" step="1" min="2" max="45" />
         </div>
         <div>
-          <label class="prefix" for="n">nb</label> <input type="text" class="small" value="50" id="n" />
+          <label class="prefix" for="n">nb</label> 
+          <input type="number" class="small" value="50" id="n" step="1" min="1" max="200" />
         </div>
         <div>
-          <label class="prefix" for="alpha">α</label> <input type="text" class="small" value="0.5" id="alpha" />
-          <label class="prefix" for="gamma">γ</label> <input type="text" class="small" value="0.95" id="gamma" />
+          <label class="prefix" for="alpha">α</label> 
+          <input type="number" class="small" value="0.5" id="alpha" step="0.01" min="0.0" max="1.0" />
+
+          <label class="prefix" for="gamma">γ</label> 
+          <input type="number" class="small" value="0.95" id="gamma" step="0.01" min="0.0" max="1.0" />
         </div>
         <div>
           <button id="start">start Q-learning</button>
@@ -396,7 +402,7 @@
     } catch (e) {}
   }
 
-  var ev = "keyup blur";
+  var ev = "keyup blur change";
   $("#width").bind(ev, updateWidth);
   $("#height").bind(ev, updateHeight);
   $("#n").bind(ev, updateN);
