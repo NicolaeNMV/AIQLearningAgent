@@ -19,56 +19,291 @@
       <h1>Q-Learning</h1>
     </header>
 
-    <div style="clear: both"></div>
 
-    <aside>
+    <blockquote>
+      Q-Learning est un algorithme d'apprentissage par renforcement non supervisé. Il s'agit d'une suite d'expérimentations aléatoires, engendrant une récompense, qui est mémorisée et améliorée.
+    </blockquote>
 
-      <div>
-        <blockquote>
-        Q-learning is a reinforcement learning technique that works by learning an action-value function that gives the expected utility of taking a given action in a given state and following a fixed policy thereafter.
-        </blockquote>
-      </div>
 
-      <br />
-      
+    <article>
+      <section>
+        <h2>Le problème</h2>
+        Dans un espace 2D fini, on place différents objets à poids négatifs (bonus) et positifs (malus). 
+        Un robot placé ensuite doit se déplacer pour aller chercher les objets positifs et éviter les objets négatifs qui agissent comme des zones d'effet (terrain accidenté, ...).
+        Le robot sait se déplacer suivant les huit directions cardinales.
+        Il est régit par une stratégie définie par une fonction de récompense.
+      </section>
 
-      <div>
-        <input type="checkbox" id="enableQL" name="enableQL" checked="checked" />
-        <label for="enableQL">visualize QL</label>
-        <input type="checkbox" id="enableAnimation" name="enableAnimation" checked="checked" />
-        <label for="enableAnimation">animated</label>
-      </div>
+      <section>
+        <div id="initial" class="experiment" style="width: 500px; height: 200px;">
+          <canvas class="path" width="500" height="200"></canvas>
+          <div class="objects" style="width: 100%; height: 100%"></div>
+        </div>
+      </section>
 
-      <div>
-        <label class="prefix" for="width">width</label> <input type="text" class="small" value="30" id="width" />
+      <script type="text/javascript">
+(function(){
+  var $node = $('#initial');
+  var $objects = $node.find('.objects');
+  var $path = $node.find(".path");
 
-      <label class="prefix" for="height">height</label> <input type="text" class="small" value="20" id="height" />
-      </div>
-      <div>
-      <label class="prefix" for="n">nb</label> <input type="text" class="small" value="50" id="n" />
-      </div>
-      <div>
-      <label class="prefix" for="alpha">α</label> <input type="text" class="small" value="0.5" id="alpha" />
-      <label class="prefix" for="gamma">γ</label> <input type="text" class="small" value="0.95" id="gamma" />
-      </div>
-      <div>
-        <button id="start">start Q-learning</button>
-      </div>
-    </aside>
+  var world = new World(20, 8);
+  world.generateRandomItems(3, 2);
+  var objectsRenderer = new ObjectsRenderer(world, $objects);
+  var robot = new Robot(world, false);
+  var robotRenderer = new RobotRenderer(robot, $path[0]);
 
-    <section>
-      <div id="experiment" style="width: 600px; height: 400px;">
-        <canvas id="path" width="600" height="400"></canvas>
-        <canvas id="viewport" width="600" height="400"></canvas>
-        <div id="objects" style="width: 100%; height: 100%"></div>
-      </div>
-    </section>
+  var n = 40;
+  var alpha = 0.1;
+  var gamma = 0.9;
 
-    <div id="stats">
-      move n°<span class="step">0</span>
-    </div>
+  robot.run(function () {
+    robotRenderer.startRendering();
+    robotRenderer.stopRendering();
+  }, n, alpha, gamma);
+}());
+      </script>
+    </article>
+
+
+    <article>
+    	<section>
+        <div class="conf">
+          <label for="propagationAlpha" class="prefix">α</label>
+            <input id="propagationAlpha" type="number" value="0.5" min="0.0" max="1.0" step="0.01" />
+            <button id="recomputePropagation" type="submit">OK</button>
+        </div>
+
+        <div id="propagation" class="experiment" style="width: 500px; height: 250px;">
+          <canvas class="viewport" width="500" height="250"></canvas>
+          <div class="objects" style="width: 100%; height: 100%"></div>
+        </div>
+
+        <div class="stats">
+        <progress id="propagationStats" value="" max="">
+          <span class="current"></span>/<span class="total"></span>
+        </progress>
+
+        </div>
+
+      </section>
+
+      <script type="text/javascript">
+(function(){
+  var $node = $('#propagation');
+  var $canvas = $node.find('.viewport');
+  var $objects = $node.find('.objects');
+  var $propagationStats = $('#propagationStats');
+  var $alpha = $('#propagationAlpha');
+  var $button = $('#recomputePropagation');
+
+  var alpha;
+  function updateAlpha () {
+    try {
+      alpha = parseFloat($alpha.val());
+    } catch (e) {}
+  }
+  updateAlpha();
+
+  var world = new World(20, 10);
+  world.generateRandomItems(6, 4);
+
+  var computations = [];
+  var n;
+  var TOTAL = 20;
+  var gamma = 1;
+
+  var interv;
+
+  $button.click(function(){
+    $button.attr("disabled", "disabled");
+    interv && clearInterval(interv);
+    n = 0;
+    updateAlpha();
+    function next () {
+      if (n==TOTAL) {
+        $button.removeAttr("disabled");
+        return end();
+      }
+      computations[n] = world.getCopiedActionsStatesArray();
+      world.computeQL (next, n, alpha, gamma);
+      ++ n;
+    }
+    next();
+  }).click();
+
+  function end () {
+    $propagationStats.find(".total").text(TOTAL);
+    var objectsRenderer = new ObjectsRenderer(world, $objects);
+    var worldRenderers = [];
+    computations.forEach(function (as, i) {
+      var wr = worldRenderers[i] = new WorldRenderer(world, $canvas[0]);
+      wr.computeStateFromActionState(as);
+    });
+
+    function loop (i) {
+      $propagationStats.
+        attr("value", i).
+        attr("max", TOTAL).
+        find(".current").text(i);
+      worldRenderers[i].render();
+    }
+
+    var i = 0;
+    interv = setInterval(function () {
+      loop(i);
+      i = i+1>=computations.length ? 0 : i+1;
+    }, 300);
+  }
+}());
+      </script>
+
+
+      <section>
+        <h2>L'apprentissage</h2>
+        <p>
+          Q-Learning est un algorithme d’apprentisage <em>non supervisé</em>, <strong>aucune connaissance de base n'est requise</strong>.
+        </p>
+        <p>
+          C'est un apprentissage <em>par renforcement</em>: l'agent dispose d'une mémoire vierge qu'il va faire évoluer au gré de ses expériences.
+        </p>
+        <p>
+          Cette mémoire contient l'ensemble des états (positions) et des actions (8 directions) possibles du système.
+          Pour chaque couple état-action, une valeur, initialement aléatoire, est maintenu et 
+          et propagé sur plusieurs itérations grâce à la fonction Q.
+        </p>
+        <p>
+          <img src="formula_small.png" alt="" style="width: 100%" />
+        </p>
+        <p>
+          Cette mémoire permet à postériori à l'agent de savoir instantanément quelle décision prendre quelque soit son état.
+
+          Nous représentons cette mémoire par un espace fléché.
+        </p>
+      </section>
+
+
+    </article>
+
+    <article>
+      <section>
+        <h2>La récompense r</h2>
+        <p>
+          La mémoire précédement visualisée est régi par la fonction de récompense.
+        </p>
+        <p>
+          L'agent est capable de déterminer la récompense engendrée par une action en fonction de l'état dans lequel il se trouve.
+        </p>
+        <p>
+          Cette récompense correspond à la somme de sous-récompenses:
+          <ul>
+            <li>
+              <strong>Récompense de direction:</strong>
+              Si l'angle de déplacement change, une logique floue est appliqué: 
+              <ul class="data">
+                <li>&nbsp;&nbsp;&nbsp;0° → &nbsp;2 points</li>
+                <li>&nbsp;±45° → &nbsp;1 points</li>
+                <li>&nbsp;±90° → &nbsp;0 points</li>
+                <li>±135° → -1 points</li>
+                <li>±180° → -2 points</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Récompense d'évitement des murs:</strong>
+              une logique floue est appliquée sur la distance à un bord.
+            </li>
+            <li>
+              <strong>Récompense d'objet:</strong>
+              Passer par un objet fait obtenir son poids en récompense.
+            </li>
+          </ul>
+        </p>
+      </section>
+      <section>
+<pre>
+<span class="lnr"> 95 </span>  <span class="Function">function</span> QL (n, alpha, gamma) <span class="Function">{</span>
+<span class="lnr"> 96 </span>    <span class="Statement">for</span> (<span class="Identifier">var</span> i = 0; i &lt; n; ++i) <span class="Function">{</span>
+<span class="lnr"> 97 </span>      applyForEachActionState(<span class="Function">function</span> (x, y, a, qsa) <span class="Function">{</span>
+<span class="lnr"> 98 </span>        <span class="Identifier">var</span> s =  <span class="Function">{</span> x: x, y: y <span class="Function">}</span>;
+<span class="lnr"> 99 </span>        <span class="Identifier">var</span> aprime = bestAction(s);
+<span class="lnr">100 </span>        <span class="Identifier">var</span> sprime = move(s, aprime);
+<span class="lnr">101 </span>        <span class="Identifier">var</span> value = qsa + alpha*(getReward(sprime, aprime, s, a) + gamma*Q(sprime, aprime) - qsa);
+<span class="lnr">102 </span>        <span class="Statement">return</span> value;
+<span class="lnr">103 </span>      <span class="Function">}</span>);
+<span class="lnr">104 </span>    <span class="Function">}</span>
+<span class="lnr">105 </span>  <span class="Function">}</span>
+<span class="lnr">... </span>  <span class="Function"></span>
+<span class="lnr">... </span>  <span class="Function"></span>
+<span class="lnr">208 </span>  <span class="Identifier">var</span> SQRT_2 = Math.sqrt(2);
+<span class="lnr">209 </span>  <span class="Function">function</span> getReward (s, a, olds, olda) <span class="Function">{</span>
+<span class="lnr">210 </span>    <span class="Identifier">var</span> r = 0;
+<span class="lnr">211 </span>    r += noReturnReward(a, olda);
+<span class="lnr">212 </span>    r += objectsReward(olds);
+<span class="lnr">213 </span>    r += noWallReward(s);
+<span class="lnr">214 </span>
+<span class="lnr">215 </span>    <span class="Statement">if</span> (actionIsDiag(olda)) <span class="Function">{</span>
+<span class="lnr">216 </span>      r /= SQRT_2;
+<span class="lnr">217 </span>    <span class="Function">}</span>
+<span class="lnr">218 </span>
+<span class="lnr">219 </span>    <span class="Statement">return</span> r;
+<span class="lnr">220 </span>  <span class="Function">}</span>
+</pre>
+      </section>
+    </article>
+
+
+    <article>
+
+      <section class="results buttons">
+
+        <h2>Résultat</h2>
+
+
+        <div class="conf">
+
+        <div>
+          <input type="checkbox" id="enableQL" name="enableQL" checked="checked" />
+          <label for="enableQL">visualize QL</label>
+          <input type="checkbox" id="enableAnimation" name="enableAnimation" checked="checked" />
+          <label for="enableAnimation">animated</label>
+        </div>
+
+        <div>
+          <label class="prefix" for="width">width</label> <input type="text" class="small" value="30" id="width" />
+
+          <label class="prefix" for="height">height</label> <input type="text" class="small" value="15" id="height" />
+        </div>
+        <div>
+          <label class="prefix" for="n">nb</label> <input type="text" class="small" value="50" id="n" />
+        </div>
+        <div>
+          <label class="prefix" for="alpha">α</label> <input type="text" class="small" value="0.5" id="alpha" />
+          <label class="prefix" for="gamma">γ</label> <input type="text" class="small" value="0.95" id="gamma" />
+        </div>
+        <div>
+          <button id="start">start Q-learning</button>
+        </div>
+
+        </div>
+      </section>
+
+      <section>
+        <div id="final" class="experiment" style="width: 500px; height: 250px;">
+          <canvas class="path" width="500" height="250"></canvas>
+          <canvas class="viewport" width="500" height="250"></canvas>
+          <div class="objects" style="width: 100%; height: 100%"></div>
+        </div>
+
+        <div class="stats" id="finalstats">
+          move n°<span class="step">0</span>
+        </div>
+      </section>
+    </article>
 
     <footer>
+      <p class="selflink">
+        <a href="http://greweb.fr/qlearning">http://greweb.fr/qlearning</a>
+      </p>
       a <a href="http://en.wikipedia.org/wiki/Q-learning">Q-learning</a> experiment - by <a href="http://twitter.com/greweb">@greweb</a> and <a href="http://twitter.com/AdrenalinTheOne">@AdrenalinTheOne</a>
     </footer>
 
@@ -76,10 +311,11 @@
 
   <script type="text/javascript">
   $(function(){
-  var $canvas = $('#viewport');
-  var $path = $('#path');
-  var $step = $('#stats .step');
-  var $objects = $('#objects');
+  var $node = $('#final');
+  var $canvas = $node.find('.viewport');
+  var $path = $node.find('.path');
+  var $step = $('#finalstats .step');
+  var $objects = $node.find('.objects');
   var $enableAnimation = $('#enableAnimation');
   var $enableQL = $('#enableQL');
 

@@ -12,29 +12,70 @@ footer {
   clear: both;
   text-align: center;
   margin-top: 20px;
-  padding-top: 10px;
-  border-top: 2px solid #fff;
+  padding-top: 20px;
   font-style: italic;
   opacity: 0.5;
 }
+
+.selflink a {
+  font-size: 2em;
+}
+
+pre { white-space: pre-wrap; font-family: monospace; color: #e6e1dc; background-color: #222222; }
+.lnr { color: #cccccc; background-color: #555555; }
+.Statement { color: #cc7833; }
+.Function { color: #ffc66d; }
+.Keyword { color: #cc7833; }
+.Identifier { color: #6d9cbe; }
+
+
+hr {
+  clear: both;
+  border: none;
+}
+article, blockquote {
+  clear: both;
+}
+em {
+  font-style: normal;
+  text-decoration: underline;
+}
 #wrapper {
   margin: 20px auto;
-  width: 550px;
-}
-#wrapper {
   width: 1100px;
 }
-#experiment {
+.experiment {
   background: white;
 }
-section, aside {
-  float: left;
+article {
+  padding: 60px 0;
 }
 section {
-  padding: 50px 0px 50px 20px;
-  margin-left: 25px;
-  border-left: 5px solid black;
-  min-height: 400px;
+  float: left;
+  display: block;
+  width: 500px;
+  vertical-align: middle;
+}
+section:not(:first-child) {
+  padding-left: 20px;
+  margin-left: 50px;
+}
+
+.conf {
+  text-align: center;
+  margin: 10px 0;
+}
+.conf div {
+  margin: 10px 0;
+}
+
+.data {
+  font-family: monospace;
+}
+
+section.results.buttons,
+section.results.buttons .conf {
+  text-align: right;
 }
 hgroup {
   text-shadow: 0px 2px 1px rgba(0,0,0,0.5);
@@ -52,18 +93,11 @@ canvas {
   z-index: 1;
 }
 
-#stats {
-  clear: both;
-  text-align: right;
+.stats {
+  margin-top: 10px;
+  text-align: center;
 }
 
-aside {
-  width: 400px;
-  text-align: right;
-}
-aside > div {
-  margin: 10px 0;
-}
 
 button {
   opacity: 0.9;
@@ -127,34 +161,33 @@ canvas.disabled {
   visibility: hidden;
 }
 
-#experiment {
+.experiment {
   position: relative;
   overflow: hidden;
-  width: 600px;
   box-shadow: 0px 2px 8px rgba(0,0,0,0.6);
 }
 
-#viewport {
+.viewport {
   position: absolute;
   top: 0;
   left: 0;
   z-index: 1;
 }
 
-#path {
+.path {
   position: absolute;
   top: 0;
   left: 0;
   z-index: 2;
 }
 
-#objects {
+.objects {
   position: absolute;
   top: 0;
   left: 0;
   z-index: 10;
 }
-#objects .object {
+.objects .object {
   position: absolute;
   z-index: 10;
 }

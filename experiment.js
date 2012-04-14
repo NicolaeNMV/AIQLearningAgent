@@ -55,6 +55,17 @@ function World (width, height) {
 
   var tmp = new Float32Array(self.width*self.height*self.actions.length);
 
+  self.getCopiedActionsStatesArray = function () {
+    var t = new Float32Array(self.width*self.height*self.actions.length);
+    if (t.set)
+      t.set(self.actionsStates);
+    else {
+      for (var i = 0; i < self.actionsStates.length; ++i)
+        t[i] = self.actionsStates[i];
+    } 
+    return t;
+  }
+
   self.applyForEachActionState = function (f) {
     if (tmp.set)
       tmp.set(self.actionsStates);
@@ -343,6 +354,8 @@ function WorldRenderer (world, canvas) {
       else {
         requestAnimFrame(loop, canvas);
       }
+      if (!dirty) return;
+      dirty = false;
       render();
     }, canvas);
   }
@@ -354,8 +367,6 @@ function WorldRenderer (world, canvas) {
   }
 
   function render () {
-    if (!dirty) return;
-    dirty = false;
 
     ctx.save();
     ctx.scale(canvas.width/world.width, canvas.height/world.height);
@@ -399,6 +410,7 @@ function WorldRenderer (world, canvas) {
 
   self.startRendering = startRendering;
   self.stopRendering = stopRendering;
+  self.render = render;
 }
 
 
