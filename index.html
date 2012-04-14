@@ -69,15 +69,15 @@
 
 
     <article>
-    	<section>
+    	<section style="margin-top: 40px">
         <div class="conf">
           <label for="propagationAlpha" class="prefix">α</label>
             <input id="propagationAlpha" class="small" type="number" value="0.5" min="0.0" max="1.0" step="0.01" />
             <button id="recomputePropagation" type="submit">OK</button>
         </div>
 
-        <div id="propagation" class="experiment" style="width: 500px; height: 250px;">
-          <canvas class="viewport" width="500" height="250"></canvas>
+        <div id="propagation" class="experiment" style="width: 500px; height: 300px">
+          <canvas class="viewport" width="500" height="300"></canvas>
           <div class="objects" style="width: 100%; height: 100%"></div>
         </div>
 
@@ -107,7 +107,7 @@
   }
   updateAlpha();
 
-  var world = new World(20, 10);
+  var world = new World(20, 12);
   world.generateRandomItems(6, 4);
 
   var computations = [];
